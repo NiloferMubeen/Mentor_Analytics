@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ period }} Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet"/>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0d0117 0%, #1a0533 30%, #2d0a4e 55%, #1f0326 80%, #0d0117 100%);
+            min-height: 100vh;
+        }
+        /* scrolling ticker */
+        .ticker-wrap { overflow: hidden; white-space: nowrap; }
+        .ticker-inner { display: inline-block; animation: ticker 30s linear infinite; }
+        @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+    </style>
+</head>
+
+<body class="text-white p-6">
+
+<!-- ── NAV (added on top of your original code) ── -->
+<nav class="sticky top-0 z-50 bg-black/70 backdrop-blur-md border-b border-purple-900/40 px-6 py-3 flex items-center justify-between mb-6 -mx-6 -mt-6">
+    <span class="text-lg font-bold" style="background:linear-gradient(135deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">✦ MentorHub</span>
+    <div class="flex gap-2 text-sm">
+        <a href="/"        class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🏠 Home</a>
+        <a href="/mentors" class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">👥 Mentors</a>
+        <a href="/queries"  class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">📊 Queries</a>
+        <a href="/projects" class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🎯 Projects</a>
+        <a href="/weekly"  class="px-4 py-2 rounded-lg {% if period=='Weekly' %}bg-purple-600/30 border border-purple-500/40 text-purple-200{% else %}hover:bg-white/5 text-gray-400 hover:text-white transition{% endif %}">📅 Weekly</a>
+        <a href="/monthly" class="px-4 py-2 rounded-lg {% if period=='Monthly' %}bg-purple-600/30 border border-purple-500/40 text-purple-200{% else %}hover:bg-white/5 text-gray-400 hover:text-white transition{% endif %}">🗓️ Monthly</a>
+        <a href="/yearly"  class="px-4 py-2 rounded-lg {% if period=='Yearly' %}bg-purple-600/30 border border-purple-500/40 text-purple-200{% else %}hover:bg-white/5 text-gray-400 hover:text-white transition{% endif %}">📆 Yearly</a>
+    </div>
+</nav>
+
+<!-- ── SCROLLING TICKER ── -->
+<div class="ticker-wrap py-2 mb-6 rounded-xl" style="background:linear-gradient(90deg,rgba(109,40,217,0.4),rgba(236,72,153,0.3),rgba(109,40,217,0.4));border:1px solid rgba(168,85,247,0.2);">
+    <div class="ticker-inner text-sm font-medium text-purple-200">
+        {% for m in mentor_stats %}
+        <span class="mx-8">✦ {{ m.name }} &nbsp;·&nbsp; {{ m.total }} queries &nbsp;·&nbsp; {{ m.close_rate }}% resolved</span>
+        {% endfor %}
+        {% for m in mentor_stats %}
+        <span class="mx-8">✦ {{ m.name }} &nbsp;·&nbsp; {{ m.total }} queries &nbsp;·&nbsp; {{ m.close_rate }}% resolved</span>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ── PERIOD HEADING (added) ── -->
+<div class="mb-6 flex items-center gap-4">
+    <div>
+        <h1 class="text-3xl font-bold" style="background:linear-gradient(135deg,#a855f7,#ec4899,#f9a8d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+            {% if period == 'Weekly' %}📅{% elif period == 'Monthly' %}🗓️{% else %}📆{% endif %}
+            {{ period }} Dashboard
+        </h1>
+        <p class="text-gray-500 text-sm mt-1">{{ period_range }}</p>
+    </div>
+    <a href="/" class="ml-auto text-xs text-gray-600 hover:text-gray-400 transition">← Back to Home</a>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     EVERYTHING BELOW IS YOUR ORIGINAL index.html CODE
+     Only change: green-400 → purple-400 / pink-400 colours
+     ════════════════════════════════════════════════════════════ -->
+
+<!-- KPI CARDS -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+
+    <div class="p-6 bg-gray-900 rounded-2xl border border-purple-500">
+        <h2 class="text-gray-400 text-sm">Total Queries</h2>
+        <p id="totalQueries" class="text-3xl font-bold text-purple-400">{{ total_queries }}</p>
+    </div>
+
+    <div class="p-6 bg-gray-900 rounded-2xl border border-purple-500">
+        <h2 class="text-gray-400 text-sm">Closed Queries</h2>
+        <p id="closedQueries" class="text-3xl font-bold text-pink-400">{{ closed_queries }}</p>
+    </div>
+
+    <div class="p-6 bg-gray-900 rounded-2xl border border-purple-500">
+        <h2 class="text-gray-400 text-sm">Avg Time (min)</h2>
+        <p id="avgTime" class="text-3xl font-bold text-violet-400">{{ avg_time }}</p>
+    </div>
+
+    <div class="p-6 bg-gray-900 rounded-2xl border border-purple-500">
+        <h2 class="text-gray-400 text-sm">Mentors</h2>
+        <p class="text-3xl font-bold text-fuchsia-400">{{ total_mentors }}</p>
+    </div>
+
+</div>
+
+<!-- FILTERS -->
+<div class="bg-gray-900 p-4 rounded-xl mb-6 flex gap-4">
+
+    <select id="mentorFilter" class="p-2 bg-black border border-purple-600 text-white rounded">
+        <option value="all">All Mentors</option>
+        {% for m in mentors %}
+            <option value="{{ m }}">{{ m }}</option>
+        {% endfor %}
+    </select>
+
+    <select id="dateFilter" class="p-2 bg-black border border-purple-600 text-white rounded">
+        <option value="all">All Dates</option>
+        {% for d in unique_dates %}
+            <option value="{{ d }}">{{ d }}</option>
+        {% endfor %}
+    </select>
+
+</div>
+
+<!-- BAR CHART -->
+<div class="bg-gray-900 p-6 rounded-2xl mb-6 max-w-4xl mx-auto">
+    <h2 class="text-xl font-bold text-purple-400 mb-4">Queries per Mentor</h2>
+    <div class="h-72"><canvas id="mentorChart"></canvas></div>
+</div>
+
+<!-- LINE + PIE -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+
+    <div class="bg-gray-900 p-6 rounded-2xl">
+        <h2 class="text-xl font-bold text-pink-400 mb-4">Daily Query Trend</h2>
+        <div class="h-64"><canvas id="lineChart"></canvas></div>
+    </div>
+
+    <div class="bg-gray-900 p-6 rounded-2xl">
+        <h2 class="text-xl font-bold text-violet-400 mb-4">Query Status Distribution</h2>
+        <div class="h-64"><canvas id="pieChart"></canvas></div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+
+<script>
+    /* ── YOUR ORIGINAL JS — unchanged ── */
+    const allData = {{ records | tojson }};
+
+    const mentorChart = new Chart(document.getElementById('mentorChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ mentor_labels | tojson }},
+            datasets: [{ label: 'Queries', data: {{ mentor_values | tojson }},
+                backgroundColor: ['#a855f7','#ec4899','#8b5cf6','#f472b6','#7c3aed','#db2777','#c084fc','#f9a8d4'],
+                borderRadius: 8, borderSkipped: false }]
+        },
+        options: { responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: 'white' } } },
+            scales: { x: { ticks: { color: 'white' } }, y: { ticks: { color: 'white' } } } }
+    });
+
+    const lineChart = new Chart(document.getElementById('lineChart'), {
+        type: 'line',
+        data: {
+            labels: {{ date_labels | tojson }},
+            datasets: [{ label: 'Queries', data: {{ date_values | tojson }},
+                borderColor: '#a855f7', backgroundColor: 'rgba(168,85,247,0.15)',
+                tension: 0.4, fill: true, pointBackgroundColor: '#ec4899' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: 'white' } } },
+            scales: { x: { ticks: { color: 'white' } }, y: { ticks: { color: 'white' } } } }
+    });
+
+    const pieChart = new Chart(document.getElementById('pieChart'), {
+        type: 'pie',
+        data: {
+            labels: {{ status_labels | tojson }},
+            datasets: [{ data: {{ status_values | tojson }},
+                backgroundColor: ['#a855f7','#ec4899','#8b5cf6','#f472b6'] }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: 'white' } },
+                datalabels: {
+                    color: 'white', font: { weight: 'bold', size: 10 },
+                    formatter: (value, context) => {
+                        let total = context.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                        return value + '\n(' + ((value/total)*100).toFixed(1) + '%)';
+                    }
+                }
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
+
+    const mentorFilter = document.getElementById('mentorFilter');
+    const dateFilter   = document.getElementById('dateFilter');
+    mentorFilter.addEventListener('change', updateDashboard);
+    dateFilter.addEventListener('change',   updateDashboard);
+
+    function updateDashboard() {
+        let filtered = allData;
+        const mentor = mentorFilter.value;
+        const date   = dateFilter.value;
+        if (mentor !== 'all') filtered = filtered.filter(d => d.Mentor === mentor);
+        if (date   !== 'all') filtered = filtered.filter(d => d.Date   === date);
+        updateCharts(filtered);
+        updateKPIs(filtered);
+    }
+
+    function updateCharts(data) {
+        const counts = {};
+        data.forEach(d => { if(d.Mentor) counts[d.Mentor]=(counts[d.Mentor]||0)+1; });
+        mentorChart.data.labels = Object.keys(counts);
+        mentorChart.data.datasets[0].data = Object.values(counts);
+        mentorChart.update();
+
+        const dateCounts = {};
+        data.forEach(d => { if(d.Date) dateCounts[d.Date]=(dateCounts[d.Date]||0)+1; });
+        lineChart.data.labels = Object.keys(dateCounts);
+        lineChart.data.datasets[0].data = Object.values(dateCounts);
+        lineChart.update();
+
+        const statusCounts = {};
+        data.forEach(d => { if(d.Status) statusCounts[d.Status]=(statusCounts[d.Status]||0)+1; });
+        pieChart.data.labels = Object.keys(statusCounts);
+        pieChart.data.datasets[0].data = Object.values(statusCounts);
+        pieChart.update();
+    }
+
+    function updateKPIs(data) {
+        document.getElementById('totalQueries').innerText = data.length;
+        document.getElementById('closedQueries').innerText = data.filter(d=>d.Status&&d.Status.toLowerCase()==='closed').length;
+        const timesInMinutes = data.map(d=>d.time_minutes||0).filter(t=>t>0);
+        document.getElementById('avgTime').innerText = timesInMinutes.length
+            ? (timesInMinutes.reduce((s,t)=>s+t,0)/timesInMinutes.length).toFixed(1) : 0;
+    }
+</script>
+
+</body>
+</html>

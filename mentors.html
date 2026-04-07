@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mentor Profiles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #020008 0%, #0d0117 20%, #1a0533 40%, #2d0a4e 60%, #1a0533 80%, #0a000f 100%);
+            min-height: 100vh;
+        }
+        .glass {
+            background: rgba(168,85,247,0.06);
+            border: 1px solid rgba(168,85,247,0.28);
+            backdrop-filter: blur(16px);
+            border-radius: 18px;
+        }
+        .m-card {
+            background: rgba(168,85,247,0.04);
+            border: 1px solid rgba(168,85,247,0.28);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .m-card:hover {
+            border-color: rgba(168,85,247,0.7);
+            background: rgba(168,85,247,0.14);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(168,85,247,0.35);
+        }
+        .m-card.active {
+            border-color: #c084fc !important;
+            background: rgba(168,85,247,0.22) !important;
+            box-shadow: 0 0 0 2px rgba(168,85,247,0.55), 0 12px 40px rgba(168,85,247,0.4);
+        }
+        .m-card.active::after {
+            content: '✓';
+            position: absolute; top: 6px; right: 8px;
+            font-size: 10px; color: #a855f7; font-weight: 900;
+        }
+        #profilePanel { display: none; animation: slideDown 0.35s cubic-bezier(.16,1,.3,1) both; }
+        @keyframes slideDown { from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:translateY(0)} }
+        .chart-box { border-radius: 18px; padding: 1.4rem; }
+        .chart-title {
+            font-size: 0.8rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; margin-bottom: 1rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .fsel {
+            background: rgba(79,29,150,0.3); border: 1px solid rgba(168,85,247,0.35);
+            color: #e9d5ff; border-radius: 10px; padding: 0.5rem 1rem;
+            font-size: 0.85rem; outline: none; cursor: pointer;
+        }
+        .fsel:focus { border-color: #a855f7; }
+        .fsel option { background: #1e0a3c; }
+        .kpi-card {
+            border-radius: 16px; padding: 1.3rem 1.2rem;
+            position: relative; overflow: hidden; transition: transform 0.25s;
+        }
+        .kpi-card:hover { transform: translateY(-3px); }
+        .kpi-card::before {
+            content:''; position:absolute; top:-40px; right:-20px;
+            width:100px; height:100px; border-radius:50%;
+            background:radial-gradient(circle,rgba(255,255,255,0.08),transparent 70%);
+        }
+        ::-webkit-scrollbar { width:5px; height:5px; }
+        ::-webkit-scrollbar-thumb { background:rgba(168,85,247,0.35); border-radius:5px; }
+    </style>
+</head>
+<body class="text-white">
+
+<!-- ══ NAV ══ -->
+<nav class="sticky top-0 z-50 bg-black/70 backdrop-blur-md border-b border-purple-900/40 px-6 py-3 flex items-center justify-between">
+    <a href="/">
+        <img src="{{ url_for('static', filename='logo.webp') }}" alt="MentorHub" class="h-9 w-auto"
+             onerror="this.outerHTML='<span style=\'background:linear-gradient(135deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.1rem;font-weight:700;\'>✦ MentorHub</span>'" />
+    </a>
+    <div class="flex gap-2 text-sm">
+        <a href="/"        class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🏠 Home</a>
+        <a href="/mentors" class="px-4 py-2 rounded-lg bg-purple-600/30 border border-purple-500/40 text-purple-200">👥 Mentors</a>
+        <a href="/queries"  class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">📊 Queries</a>
+        <a href="/projects" class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🎯 Projects</a>
+        <a href="/weekly"  class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">📅 Weekly</a>
+        <a href="/monthly" class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🗓️ Monthly</a>
+        <a href="/yearly"  class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">📆 Yearly</a>
+    </div>
+</nav>
+
+<div class="px-6 py-8 max-w-screen-xl mx-auto">
+
+    <!-- ══ PAGE HEADER ══ -->
+    <div class="mb-8">
+        <h1 class="text-4xl font-black mb-1"
+            style="background:linear-gradient(135deg,#a855f7,#ec4899,#f9a8d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+            👥 Mentor Profiles
+        </h1>
+        <p class="text-gray-500 text-sm">All mentor data shown by default. Click a card to see individual performance.</p>
+    </div>
+
+    <!-- ══ KPI ROW ══ -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="kpi-card" style="background:linear-gradient(135deg,rgba(168,85,247,0.35),rgba(109,40,217,0.18));border:1px solid rgba(168,85,247,0.5);box-shadow:0 0 25px rgba(168,85,247,0.3);">
+            <div class="text-2xl mb-1">🎯</div>
+            <div class="text-3xl font-black text-purple-200" id="kpiTotal">{{ total_queries }}</div>
+            <div class="text-xs uppercase tracking-widest text-purple-300 mt-1 opacity-90">Total Queries</div>
+        </div>
+        <div class="kpi-card" style="background:linear-gradient(135deg,rgba(236,72,153,0.35),rgba(190,24,93,0.18));border:1px solid rgba(236,72,153,0.5);box-shadow:0 0 25px rgba(236,72,153,0.3);">
+            <div class="text-2xl mb-1">✅</div>
+            <div class="text-3xl font-black text-pink-200" id="kpiClosed">{{ closed_queries }}</div>
+            <div class="text-xs uppercase tracking-widest text-pink-300 mt-1 opacity-90">Closed</div>
+        </div>
+        <div class="kpi-card" style="background:linear-gradient(135deg,rgba(139,92,246,0.35),rgba(79,29,150,0.18));border:1px solid rgba(139,92,246,0.5);box-shadow:0 0 25px rgba(139,92,246,0.3);">
+            <div class="text-2xl mb-1">⏱️</div>
+            <div class="text-3xl font-black text-violet-200" id="kpiAvg">{{ avg_time }}</div>
+            <div class="text-xs uppercase tracking-widest text-violet-300 mt-1 opacity-90">Avg Time (min)</div>
+        </div>
+        <div class="kpi-card" style="background:linear-gradient(135deg,rgba(217,70,239,0.35),rgba(134,25,143,0.18));border:1px solid rgba(217,70,239,0.5);box-shadow:0 0 25px rgba(217,70,239,0.3);">
+            <div class="text-2xl mb-1">👥</div>
+            <div class="text-3xl font-black text-fuchsia-200">{{ total_mentors }}</div>
+            <div class="text-xs uppercase tracking-widest text-fuchsia-300 mt-1 opacity-90">Active Mentors</div>
+        </div>
+    </div>
+
+    <!-- ══ FILTER BAR ══ -->
+    <div class="glass flex flex-wrap items-center gap-4 px-5 py-4 mb-8">
+        <span class="text-xs text-gray-500 uppercase tracking-widest font-semibold">Filter</span>
+        <select class="fsel" id="mentorFilter" onchange="onMentorFilterChange()">
+            <option value="all">All Mentors</option>
+            {% for m in mentors %}
+            <option value="{{ m }}">{{ m }}</option>
+            {% endfor %}
+        </select>
+        <select class="fsel" id="dateFilter" onchange="applyFilters()">
+            <option value="all">All Dates</option>
+            {% for d in unique_dates %}
+            <option value="{{ d }}">{{ d }}</option>
+            {% endfor %}
+        </select>
+        <button id="resetBtn" onclick="resetAll()" style="display:none;"
+            class="px-4 py-2 rounded-lg text-xs font-bold text-white"
+            style="background:linear-gradient(135deg,#7c3aed,#ec4899);">
+            ✕ Reset
+        </button>
+        <span id="filterLabel" class="text-xs text-purple-400 font-semibold ml-auto"></span>
+    </div>
+
+    <!-- ══ MENTOR CARDS ══ -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+        {% for m in mentor_stats %}
+        <div class="m-card p-4 text-center"
+             data-name="{{ m.name }}"
+             data-total="{{ m.total }}"
+             data-closed="{{ m.closed }}"
+             data-avg="{{ m.avg_time }}"
+             data-rate="{{ m.close_rate }}"
+             onclick="selectMentor(this)">
+            <div class="w-14 h-14 rounded-full mx-auto mb-3 flex items-center justify-center text-lg font-black overflow-hidden relative"
+                 style="background:linear-gradient(135deg,#7c3aed,#ec4899);box-shadow:0 4px 15px rgba(168,85,247,0.35);">
+                <img src="{{ url_for('static', filename='caricatures/' + (m.name|replace(' ','_')) + '.gif') }}"
+     alt="{{ m.name }}"
+     class="w-20 h-20 rounded-full">
+                     onerror="this.style.display='none'"
+                     class="absolute inset-0 w-full h-full object-cover rounded-full" alt=""/>
+                <span class="relative z-10">{{ m.name[0] }}{{ m.name.split(' ')[1][0] if m.name.split(' ')|length > 1 else '' }}</span>
+            </div>
+            <div class="text-xs font-bold text-purple-100 leading-tight mb-1 truncate px-1">{{ m.name }}</div>
+            <div class="text-xs text-gray-500 mb-2">{{ m.total }} queries</div>
+            <div class="h-1 rounded-full bg-gray-800 mb-1">
+                <div class="h-1 rounded-full" style="width:{{ m.close_rate }}%;background:linear-gradient(90deg,#a855f7,#ec4899);"></div>
+            </div>
+            <div class="text-xs font-semibold text-pink-400">{{ m.close_rate }}%</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ══ PROFILE PANEL (hidden until mentor clicked) ══ -->
+    <div id="profilePanel" class="mb-8">
+        <div class="glass p-6" style="border-color:rgba(168,85,247,0.4);background:rgba(109,40,217,0.1);">
+
+            <div class="flex items-center gap-5 mb-6 flex-wrap">
+                <div class="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-black overflow-hidden relative flex-shrink-0"
+                     style="background:linear-gradient(135deg,#7c3aed,#ec4899);border:3px solid #a855f7;box-shadow:0 0 25px rgba(168,85,247,0.5);">
+                    <img id="pGif" src="" onerror="this.style.display='none'"
+                         class="absolute inset-0 w-full h-full object-cover rounded-full" alt=""/>
+                    <span id="pInitials" class="relative z-10"></span>
+                </div>
+                <div class="flex-1">
+                    <div id="pName" class="text-2xl font-black text-white"></div>
+                    <div class="text-xs text-gray-500 mt-1">Individual Performance · All Dates (use Date filter to drill down)</div>
+                </div>
+                <button onclick="resetAll()"
+                    class="text-xs px-4 py-2 rounded-lg text-gray-400 border border-gray-700 hover:border-purple-500 hover:text-purple-300 transition">
+                    ← Back to All Mentors
+                </button>
+            </div>
+
+            <!-- Profile KPIs -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                <div class="rounded-xl p-4 text-center" style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.2);">
+                    <div id="pTotal" class="text-2xl font-black text-purple-300"></div>
+                    <div class="text-xs text-gray-500 mt-1">Total Queries</div>
+                </div>
+                <div class="rounded-xl p-4 text-center" style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.2);">
+                    <div id="pClosed" class="text-2xl font-black text-pink-300"></div>
+                    <div class="text-xs text-gray-500 mt-1">Closed</div>
+                </div>
+                <div class="rounded-xl p-4 text-center" style="background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.2);">
+                    <div id="pAvg" class="text-2xl font-black text-violet-300"></div>
+                    <div class="text-xs text-gray-500 mt-1">Avg. Time (min)</div>
+                </div>
+                <div class="rounded-xl p-4 text-center" style="background:rgba(217,70,239,0.15);border:1px solid rgba(217,70,239,0.2);">
+                    <div id="pRate" class="text-2xl font-black text-fuchsia-300"></div>
+                    <div class="text-xs text-gray-500 mt-1">Close Rate</div>
+                </div>
+            </div>
+
+            <!-- Profile charts -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="chart-box" style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:14px;">
+                    <div class="chart-title text-emerald-400">📚 Project Doubt Sessions</div>
+                    <div style="height:200px;"><canvas id="doubtChart"></canvas></div>
+                </div>
+                <div class="chart-box" style="background:rgba(99,102,241,0.07);border:1px solid rgba(99,102,241,0.25);border-radius:14px;">
+                    <div class="chart-title text-indigo-300">🎯 Live Eval · Zen Portal Status</div>
+                    <div style="height:200px;"><canvas id="liveevalChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ MAIN CHARTS ══ -->
+
+    <!-- Queries per mentor -->
+    <div class="chart-box glass mb-6" style="border-color:rgba(168,85,247,0.3);">
+        <div class="chart-title text-purple-400">📊 Queries per Mentor</div>
+        <div style="height:280px;"><canvas id="mentorChart"></canvas></div>
+    </div>
+
+    <!-- Daily trend + Status -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+        <div class="chart-box glass" style="border-color:rgba(236,72,153,0.3);">
+            <div class="chart-title text-pink-400">📈 Daily Query Trend</div>
+            <div style="height:240px;"><canvas id="lineChart"></canvas></div>
+        </div>
+        <div class="chart-box glass" style="border-color:rgba(139,92,246,0.3);">
+            <div class="chart-title text-violet-400">🍩 Query Status Distribution</div>
+            <div style="height:240px;"><canvas id="pieChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- Projects evaluated + Doubt learners -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
+        <div class="chart-box glass" style="border-color:rgba(217,70,239,0.3);">
+            <div class="chart-title text-fuchsia-400">🎯 Projects Evaluated per Mentor</div>
+            <p class="text-gray-600 text-xs mb-3">From Live Evaluation sheet</p>
+            <div style="height:280px;"><canvas id="evalsPerMentorChart"></canvas></div>
+        </div>
+        <div class="chart-box glass" style="border-color:rgba(16,185,129,0.3);">
+            <div class="chart-title text-emerald-400">🎓 Doubt Session Learners per Mentor</div>
+            <p class="text-gray-600 text-xs mb-3">Total learners handled (sum of Count)</p>
+            <div style="height:280px;"><canvas id="doubtLearnersChart"></canvas></div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+<script>
+/* ── DATA ── */
+const allData          = {{ records | tojson }};
+const doubtByMentor    = {{ doubt_by_mentor | tojson }};
+const liveevalByMentor = {{ liveeval_by_mentor | tojson }};
+const initMentorLabels = {{ mentor_labels | tojson }};
+const initMentorValues = {{ mentor_values | tojson }};
+const initDateLabels   = {{ date_labels | tojson }};
+const initDateValues   = {{ date_values | tojson }};
+const initStatusLabels = {{ status_labels | tojson }};
+const initStatusValues = {{ status_values | tojson }};
+
+/* ── PALETTES ── */
+const P = ['#a855f7','#c084fc','#7c3aed','#d946ef','#8b5cf6','#6d28d9','#e879f9','#4f1d96'];
+const Q = ['#ec4899','#f472b6','#db2777','#f9a8d4','#be185d','#fda4af'];
+
+/* ── SHARED OPTIONS ── */
+function bOpt(xc,yc) {
+    xc = xc||'#c4b5fd'; yc = yc||'#c4b5fd';
+    return {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{labels:{color:'#c4b5fd',font:{size:11}}} },
+        scales:{
+            x:{ticks:{color:xc,font:{size:10}}, grid:{color:'rgba(168,85,247,0.07)'}},
+            y:{ticks:{color:yc,font:{size:10}}, grid:{color:'rgba(168,85,247,0.07)'}, beginAtZero:true}
+        }
+    };
+}
+
+/* ── MAIN CHARTS ── */
+const mentorChart = new Chart(document.getElementById('mentorChart'), {
+    type:'bar',
+    data:{ labels:initMentorLabels, datasets:[{label:'Queries',data:initMentorValues,backgroundColor:P,borderRadius:8,borderSkipped:false}] },
+    options:{ ...bOpt(), plugins:{legend:{display:false}, datalabels:{color:'#fff',font:{weight:'bold',size:11},anchor:'end',align:'top'}} },
+    plugins:[ChartDataLabels]
+});
+
+const lineChart = new Chart(document.getElementById('lineChart'), {
+    type:'line',
+    data:{ labels:initDateLabels, datasets:[{label:'Queries',data:initDateValues,borderColor:'#ec4899',backgroundColor:'rgba(236,72,153,0.12)',pointBackgroundColor:'#f472b6',tension:0.4,fill:true,pointRadius:4}] },
+    options:bOpt('#f9a8d4','#f9a8d4')
+});
+
+const pieChart = new Chart(document.getElementById('pieChart'), {
+    type:'doughnut',
+    data:{ labels:initStatusLabels, datasets:[{data:initStatusValues,backgroundColor:[...P,...Q],borderWidth:0,hoverOffset:8}] },
+    options:{
+        responsive:true, maintainAspectRatio:false, cutout:'55%',
+        plugins:{
+            legend:{position:'right',labels:{color:'#c4b5fd',font:{size:11},boxWidth:12}},
+            datalabels:{color:'#fff',font:{weight:'bold',size:10},formatter:(v,c)=>{
+                const t=c.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                return t>0?((v/t)*100).toFixed(1)+'%':'';
+            }}
+        }
+    },
+    plugins:[ChartDataLabels]
+});
+
+new Chart(document.getElementById('evalsPerMentorChart'), {
+    type:'bar',
+    data:{ labels:{{ liveeval_mentor_labels | tojson }}, datasets:[{label:'Evaluated',data:{{ liveeval_mentor_values | tojson }},backgroundColor:Q,borderRadius:8,borderSkipped:false}] },
+    options:{ ...bOpt('#f9a8d4','#f9a8d4'), plugins:{legend:{display:false},datalabels:{color:'#fff',font:{weight:'bold',size:11},anchor:'end',align:'top'}} },
+    plugins:[ChartDataLabels]
+});
+
+new Chart(document.getElementById('doubtLearnersChart'), {
+    type:'bar',
+    data:{ labels:{{ doubt_learner_labels | tojson }}, datasets:[{label:'Learners',data:{{ doubt_learner_values | tojson }},
+        backgroundColor:(ctx)=>{const ch=ctx.chart,{ctx:c,chartArea:a}=ch;if(!a)return'#10b981';const g=c.createLinearGradient(a.left,0,a.right,0);g.addColorStop(0,'#059669');g.addColorStop(1,'#34d399');return g;},
+        borderRadius:{topRight:8,bottomRight:8},borderSkipped:false}] },
+    options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false},datalabels:{color:'#fff',font:{weight:'bold',size:11},anchor:'end',align:'right',formatter:v=>v+' learners'}},
+        scales:{x:{ticks:{color:'#6ee7b7',font:{size:10}},grid:{color:'rgba(16,185,129,0.08)'},beginAtZero:true},y:{ticks:{color:'#d1fae5',font:{size:11,weight:'600'}},grid:{display:false}}}
+    },
+    plugins:[ChartDataLabels]
+});
+
+/* ── PROFILE PANEL CHARTS ── */
+let dInst=null, eInst=null;
+
+function renderProfileCharts(name) {
+    const dData = doubtByMentor[name]    || {dates:[],counts:[]};
+    const eData = liveevalByMentor[name] || {labels:[],values:[]};
+
+    if(dInst) dInst.destroy();
+    dInst = new Chart(document.getElementById('doubtChart'), {
+        type:'bar',
+        data:{ labels:dData.dates, datasets:[{label:'Sessions',data:dData.counts,backgroundColor:'rgba(16,185,129,0.65)',borderColor:'#10b981',borderWidth:1,borderRadius:6,borderSkipped:false}] },
+        options:{ ...bOpt('#6ee7b7','#6ee7b7'), plugins:{legend:{display:false},datalabels:{color:'#fff',font:{weight:'bold',size:10},anchor:'end',align:'top'}} },
+        plugins:[ChartDataLabels]
+    });
+
+    if(eInst) eInst.destroy();
+    eInst = new Chart(document.getElementById('liveevalChart'), {
+        type:'doughnut',
+        data:{ labels:eData.labels, datasets:[{data:eData.values,backgroundColor:['#6366f1','#8b5cf6','#a855f7','#c084fc','#818cf8','#4f46e5'],borderWidth:0,hoverOffset:8}] },
+        options:{
+            responsive:true, maintainAspectRatio:false, cutout:'50%',
+            plugins:{
+                legend:{position:'right',labels:{color:'#c7d2fe',font:{size:10},boxWidth:10}},
+                datalabels:{color:'#fff',font:{weight:'bold',size:10},formatter:(v,c)=>{
+                    const t=c.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                    return t>0?((v/t)*100).toFixed(1)+'%':'';
+                }}
+            }
+        },
+        plugins:[ChartDataLabels]
+    });
+}
+
+/* ── SELECT MENTOR ── */
+function selectMentor(el) {
+    document.querySelectorAll('.m-card').forEach(c=>c.classList.remove('active'));
+    el.classList.add('active');
+
+    const name=el.dataset.name, total=el.dataset.total,
+          closed=el.dataset.closed, avg=el.dataset.avg, rate=el.dataset.rate;
+
+    document.getElementById('pName').textContent     = name;
+    document.getElementById('pTotal').textContent    = total;
+    document.getElementById('pClosed').textContent   = closed;
+    document.getElementById('pAvg').textContent      = avg+' min';
+    document.getElementById('pRate').textContent     = rate+'%';
+    document.getElementById('pInitials').textContent = name[0]+(name.split(' ')[1]?name.split(' ')[1][0]:'');
+
+    const gif=document.getElementById('pGif');
+    gif.src='/static/caricatures/'+name.replace(/ /g,'_')+'.gif';
+    gif.style.display='';
+
+    const panel=document.getElementById('profilePanel');
+    panel.style.display='block';
+    renderProfileCharts(name);
+    panel.scrollIntoView({behavior:'smooth',block:'start'});
+
+    document.getElementById('mentorFilter').value=name;
+    document.getElementById('resetBtn').style.display='inline-block';
+    document.getElementById('filterLabel').textContent='Showing: '+name;
+    applyFilters();
+}
+
+/* ── MENTOR DROPDOWN ── */
+function onMentorFilterChange() {
+    const val=document.getElementById('mentorFilter').value;
+    if(val==='all'){resetAll();return;}
+    const card=document.querySelector(`.m-card[data-name="${val}"]`);
+    if(card) selectMentor(card);
+}
+
+/* ── APPLY FILTERS ── */
+function applyFilters() {
+    let data=allData;
+    const mentor=document.getElementById('mentorFilter').value;
+    const date=document.getElementById('dateFilter').value;
+    if(mentor!=='all') data=data.filter(d=>d.Mentor===mentor);
+    if(date!=='all')   data=data.filter(d=>d.Date===date);
+
+    document.getElementById('kpiTotal').textContent  = data.length;
+    const cl=data.filter(d=>d.Status&&d.Status.toLowerCase()==='closed').length;
+    document.getElementById('kpiClosed').textContent = cl;
+    const times=data.map(d=>d.time_minutes||0).filter(t=>t>0);
+    document.getElementById('kpiAvg').textContent    = times.length?(times.reduce((s,t)=>s+t,0)/times.length).toFixed(1):0;
+
+    const mc={};
+    data.forEach(d=>{if(d.Mentor)mc[d.Mentor]=(mc[d.Mentor]||0)+1;});
+    mentorChart.data.labels=Object.keys(mc);
+    mentorChart.data.datasets[0].data=Object.values(mc);
+    mentorChart.update();
+
+    const dc={};
+    data.forEach(d=>{if(d.Date)dc[d.Date]=(dc[d.Date]||0)+1;});
+    const dl=Object.keys(dc).sort();
+    lineChart.data.labels=dl;
+    lineChart.data.datasets[0].data=dl.map(l=>dc[l]);
+    lineChart.update();
+
+    const sc={};
+    data.forEach(d=>{if(d.Status)sc[d.Status]=(sc[d.Status]||0)+1;});
+    pieChart.data.labels=Object.keys(sc);
+    pieChart.data.datasets[0].data=Object.values(sc);
+    pieChart.update();
+
+    const active=mentor!=='all'||date!=='all';
+    document.getElementById('resetBtn').style.display=active?'inline-block':'none';
+    document.getElementById('filterLabel').textContent=active
+        ?'Filtered'+(mentor!=='all'?': '+mentor:'')+(date!=='all'?' · '+date:'') : '';
+}
+
+/* ── RESET ── */
+function resetAll() {
+    document.getElementById('mentorFilter').value='all';
+    document.getElementById('dateFilter').value='all';
+    document.querySelectorAll('.m-card').forEach(c=>c.classList.remove('active'));
+    document.getElementById('profilePanel').style.display='none';
+    document.getElementById('resetBtn').style.display='none';
+    document.getElementById('filterLabel').textContent='';
+
+    mentorChart.data.labels=initMentorLabels; mentorChart.data.datasets[0].data=initMentorValues; mentorChart.update();
+    lineChart.data.labels=initDateLabels;     lineChart.data.datasets[0].data=initDateValues;     lineChart.update();
+    pieChart.data.labels=initStatusLabels;    pieChart.data.datasets[0].data=initStatusValues;    pieChart.update();
+
+    document.getElementById('kpiTotal').textContent  = allData.length;
+    document.getElementById('kpiClosed').textContent = allData.filter(d=>d.Status&&d.Status.toLowerCase()==='closed').length;
+    const times=allData.map(d=>d.time_minutes||0).filter(t=>t>0);
+    document.getElementById('kpiAvg').textContent    = times.length?(times.reduce((s,t)=>s+t,0)/times.length).toFixed(1):0;
+}
+</script>
+</body>
+</html>
