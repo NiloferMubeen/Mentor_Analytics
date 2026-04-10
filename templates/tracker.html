@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project Tracker – MentorHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
+        body {
+            background: linear-gradient(135deg,#04000e 0%,#080018 20%,#0e0028 45%,#060014 70%,#02000a 100%);
+            min-height:100vh;
+            font-family:'Inter',sans-serif;
+        }
+        h1,h2,.font-display { font-family:'Syne',sans-serif; }
+
+        .glow-amber  { box-shadow:0 0 28px rgba(251,191,36,0.4),0 0 55px rgba(251,191,36,0.12); }
+        .glow-orange { box-shadow:0 0 28px rgba(249,115,22,0.4),0 0 55px rgba(249,115,22,0.12); }
+        .glow-rose   { box-shadow:0 0 28px rgba(244,63,94,0.4),0 0 55px rgba(244,63,94,0.12); }
+        .glow-violet { box-shadow:0 0 28px rgba(139,92,246,0.4),0 0 55px rgba(139,92,246,0.12); }
+
+        .glass {
+            background:rgba(255,255,255,0.025);
+            border:1px solid rgba(251,191,36,0.15);
+            backdrop-filter:blur(18px);
+            border-radius:20px;
+        }
+        .glass-bright {
+            background:rgba(251,191,36,0.05);
+            border:1px solid rgba(251,191,36,0.3);
+            backdrop-filter:blur(18px);
+            border-radius:20px;
+        }
+
+        .kpi-card {
+            border-radius:18px; padding:1.4rem 1.3rem;
+            position:relative; overflow:hidden;
+            transition:transform .3s,box-shadow .3s;
+        }
+        .kpi-card:hover { transform:translateY(-4px); }
+        .kpi-card::before {
+            content:''; position:absolute; top:-28px; right:-18px;
+            width:100px; height:100px; border-radius:50%;
+            background:radial-gradient(circle,rgba(255,255,255,0.09),transparent 70%);
+        }
+        .big-num { font-size:2.6rem; font-weight:900; line-height:1; letter-spacing:-0.03em; font-family:'Syne',sans-serif; }
+
+        .chart-box { border-radius:20px; padding:1.5rem; transition:box-shadow .3s; }
+        .chart-box:hover { box-shadow:0 0 40px rgba(251,191,36,0.1); }
+        .chart-title {
+            font-size:.75rem; font-weight:700; text-transform:uppercase;
+            letter-spacing:.1em; margin-bottom:1rem;
+            display:flex; align-items:center; gap:.5rem;
+            font-family:'Syne',sans-serif;
+        }
+
+        .fsel {
+            background:rgba(120,53,15,0.35); border:1px solid rgba(251,191,36,0.35);
+            color:#fde68a; border-radius:12px; padding:.5rem 1rem;
+            font-size:.85rem; outline:none; cursor:pointer; font-family:'Inter',sans-serif;
+        }
+        .fsel:focus { border-color:#fbbf24; box-shadow:0 0 0 3px rgba(251,191,36,0.18); }
+        .fsel option { background:#1c0f00; }
+
+        .tab-btn {
+            padding:.45rem 1.2rem; border-radius:10px; font-size:.8rem;
+            font-weight:700; cursor:pointer; transition:all .2s;
+            border:1px solid rgba(251,191,36,0.25); color:#92400e;
+            font-family:'Syne',sans-serif;
+        }
+        .tab-btn.active {
+            background:rgba(251,191,36,0.2); border-color:#fbbf24; color:#fde68a;
+        }
+        .tab-btn:not(.active):hover { background:rgba(255,255,255,0.04); color:#fbbf24; }
+
+        .section-header {
+            display:flex; align-items:center; gap:16px; margin-bottom:20px;
+        }
+        .section-header::after {
+            content:''; flex:1; height:1px;
+            background:linear-gradient(90deg,rgba(251,191,36,0.4),transparent);
+        } 100%{transform:translateX(-50%)} }
+
+        .nav-active { background:rgba(251,191,36,0.2); border:1px solid rgba(251,191,36,0.5); color:#fde68a; }
+        .badge-neon {
+            display:inline-flex; align-items:center; gap:6px;
+            padding:4px 14px; border-radius:999px;
+            font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+        }
+        .pulse-dot { animation:pdot 1.4s ease-in-out infinite; }
+        @keyframes pdot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+
+        ::-webkit-scrollbar { width:5px; height:5px; }
+        ::-webkit-scrollbar-thumb { background:rgba(251,191,36,0.35); border-radius:5px; }
+
+        .alert-badge {
+            display:inline-flex; align-items:center; gap:5px;
+            padding:3px 10px; border-radius:999px; font-size:.7rem; font-weight:700;
+        }
+    </style>
+</head>
+<body class="text-white">
+
+<!-- NAV -->
+<nav class="sticky top-0 z-50 bg-black/80 backdrop-blur-lg border-b border-amber-900/30 px-6 py-3 flex items-center justify-between">
+    <a href="/">
+        <img src="/static/logo.webp" alt="MentorHub" class="h-9 w-auto"
+             onerror="this.outerHTML='<span style=\'background:linear-gradient(135deg,#fbbf24,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.1rem;font-weight:800;\'>✦ MentorHub</span>'" />
+    </a>
+    <div class="flex gap-2 text-sm">
+        <a href="/"               class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🏠 Home</a>
+        <a href="/queries"        class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">📊 Queries</a>
+        <a href="/projects"       class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🎯 Projects</a>
+        <a href="/sessions"       class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🗓️ Sessions</a>
+        <a href="/tracker"        class="px-4 py-2 rounded-lg nav-active">📌 Tracker</a>
+        <a href="/tracker-alerts" class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🚨 Alerts</a>
+    </div>
+</nav>
+
+{% if tracker_empty %}
+<div class="flex items-center justify-center h-96">
+    <div class="text-center">
+        <div class="text-6xl mb-4">📭</div>
+        <div class="text-xl text-amber-400 font-bold">No tracker data loaded</div>
+        <div class="text-gray-500 text-sm mt-2">Check your TRACKER_SHEET_ID in app.py</div>
+    </div>
+</div>
+{% else %}
+
+<div class="px-6 py-8 max-w-screen-xl mx-auto">
+
+    <!-- PAGE HEADER -->
+    <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
+        <div>
+            <div class="badge-neon mb-3" style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.35);color:#fcd34d;">
+                <span class="pulse-dot w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
+                Live Tracker Data
+            </div>
+            <h1 class="text-5xl font-display font-black mb-1 leading-tight"
+                style="background:linear-gradient(135deg,#fcd34d,#fbbf24,#f97316,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+                📌 Project Tracker
+            </h1>
+            <p class="text-gray-500 text-sm mt-1">Batch assignments, project titles & mentor workload — Data Science + AI ML</p>
+        </div>
+        <a href="/tracker-alerts"
+           class="px-5 py-2.5 rounded-xl font-semibold text-sm border transition flex items-center gap-2"
+           style="border-color:rgba(244,63,94,0.5);color:#fda4af;background:rgba(244,63,94,0.08);">
+            🚨 View Alerts
+            {% if deadline_today|length > 0 or ooo_batches|length > 0 %}
+            <span class="px-2 py-0.5 rounded-full text-xs font-black" style="background:#f43f5e;color:white;">
+                {{ (deadline_today|length) + (ooo_batches|length) }}
+            </span>
+            {% endif %}
+        </a>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        
+    </div>
+
+    <!-- SHEET FILTER TABS -->
+    <div class="flex items-center gap-3 mb-8 flex-wrap">
+        <span class="text-xs text-amber-500 uppercase tracking-widest font-bold">📂 Sheet</span>
+        <button class="tab-btn active" onclick="setSheet('all',this)">All</button>
+        {% for s in sheets %}
+        <button class="tab-btn" onclick="setSheet('{{ s }}',this)">{{ s }}</button>
+        {% endfor %}
+        <div class="ml-4 flex items-center gap-2">
+            <span class="text-xs text-amber-500 uppercase tracking-widest font-bold">👤 Mentor</span>
+            <select class="fsel" id="mentorFilter" onchange="applyFilter()">
+                <option value="all">All Mentors</option>
+                {% for m in mentors %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+            </select>
+        </div>
+        <button onclick="resetFilters()"
+            class="px-4 py-2 rounded-xl text-xs font-bold text-white ml-2"
+            style="background:linear-gradient(135deg,#b45309,#f97316);">
+            ✕ Reset
+        </button>
+    </div>
+
+    <!-- ALERT BANNERS -->
+    {% if deadline_today|length > 0 %}
+    <div class="glass mb-4 px-5 py-4 flex items-center gap-3" style="border-color:rgba(244,63,94,0.5);background:rgba(244,63,94,0.08);">
+        <span class="text-2xl">🔴</span>
+        <div>
+            <div class="font-bold text-rose-300 text-sm">{{ deadline_today|length }} project deadline(s) TODAY — alert emails sent automatically</div>
+            <div class="text-xs text-gray-500 mt-0.5">
+                {% for d in deadline_today %}{{ d.Batch }} ({{ d['Project Title'] }}){% if not loop.last %}, {% endif %}{% endfor %}
+            </div>
+        </div>
+        <a href="/tracker-alerts" class="ml-auto text-xs text-rose-400 border border-rose-700 px-3 py-1.5 rounded-lg hover:bg-rose-900/30 transition">View Log →</a>
+    </div>
+    {% endif %}
+    {% if ooo_batches|length > 0 %}
+    <div class="glass mb-6 px-5 py-4 flex items-center gap-3" style="border-color:rgba(251,191,36,0.5);background:rgba(251,191,36,0.06);">
+        <span class="text-2xl">⚠️</span>
+        <div>
+            <div class="font-bold text-amber-300 text-sm">{{ ooo_batches|length }} batch(es) have Final project assigned out of order — alert emails sent</div>
+            <div class="text-xs text-gray-500 mt-0.5">
+                {% for b in ooo_batches %}{{ b.batch }} · {{ b.mentor }}{% if not loop.last %}, {% endif %}{% endfor %}
+            </div>
+        </div>
+        <a href="/tracker-alerts" class="ml-auto text-xs text-amber-400 border border-amber-700 px-3 py-1.5 rounded-lg hover:bg-amber-900/30 transition">View Log →</a>
+    </div>
+    {% endif %}
+
+    <!-- ══ SECTION 1: PROJECT TITLES ══ -->
+    <div class="section-header">
+        <h2 class="text-lg font-display font-black text-amber-300 whitespace-nowrap">📋 Project Titles</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <!-- Chart 1: Title vs Batches -->
+        <div class="chart-box glass" style="border-color:rgba(251,191,36,0.3);">
+            <div class="chart-title text-amber-300">📦 Project Title → No. of Batches Assigned</div>
+            <div style="height:320px;"><canvas id="titleBatchChart"></canvas></div>
+        </div>
+        <!-- Chart 2: Unique projects per mentor -->
+        <div class="chart-box glass" style="border-color:rgba(249,115,22,0.3);">
+            <div class="chart-title text-orange-300">👤 Unique Project Titles per Mentor</div>
+            <div style="height:320px;"><canvas id="mentorProjChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- ══ SECTION 2: MENTOR WORKLOAD ══ -->
+    <div class="section-header">
+        <h2 class="text-lg font-display font-black text-orange-300 whitespace-nowrap">👤 Mentor Workload</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <!-- Chart 3: Batches per mentor × language -->
+        <div class="chart-box glass" style="border-color:rgba(251,191,36,0.25);">
+            <div class="chart-title text-amber-400">🌐 Batches per Mentor — by Language</div>
+            <div style="height:320px;"><canvas id="langStackedChart"></canvas></div>
+        </div>
+        <!-- Chart 6: Batches per mentor × mode -->
+        <div class="chart-box glass" style="border-color:rgba(249,115,22,0.25);">
+            <div class="chart-title text-orange-400">📅 Batches per Mentor — by Mode (Weekend / Weekday)</div>
+            <div style="height:320px;"><canvas id="modeStackedChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- ══ SECTION 3: MODE & ASSIGNED BY ══ -->
+    <div class="section-header">
+        <h2 class="text-lg font-display font-black text-rose-300 whitespace-nowrap">📊 Distribution</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <!-- Chart 4: Weekend vs Weekday -->
+        <div class="chart-box glass" style="border-color:rgba(244,63,94,0.3);">
+            <div class="chart-title text-rose-300">📅 Weekend vs Weekday Batches</div>
+            <div style="height:280px;"><canvas id="modeDonutChart"></canvas></div>
+        </div>
+        <!-- Chart 5: Assigned by -->
+        <div class="chart-box glass" style="border-color:rgba(139,92,246,0.3);">
+            <div class="chart-title text-violet-300">🙋 Assigned By Breakdown</div>
+            <div style="height:280px;"><canvas id="assignedChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- ══ SECTION 4: BATCH COMPLETION ══ -->
+    <div class="section-header">
+        <h2 class="text-lg font-display font-black text-amber-200 whitespace-nowrap">✅ Batch Completion</h2>
+    </div>
+
+    <div class="chart-box glass mb-10" style="border-color:rgba(251,191,36,0.25);">
+        <div class="chart-title text-amber-300">📦 Projects Assigned vs Total per Batch</div>
+        <div style="height:380px; overflow-x:auto;"><canvas id="completionChart"></canvas></div>
+    </div>
+
+</div>
+{% endif %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+<script>
+const rawRecords   = {{ tracker_records | tojson }};
+const initSheets   = {{ sheets | tojson }};
+
+/* ── PALETTES ── */
+const AMBER  = ['#fbbf24','#fcd34d','#f59e0b','#fde68a','#b45309','#fef3c7','#d97706','#fef08a'];
+const ORANGE = ['#f97316','#fb923c','#ea580c','#fdba74','#c2410c','#fed7aa','#9a3412','#ffedd5'];
+const ROSE   = ['#f43f5e','#fb7185','#e11d48','#fda4af','#be123c','#fecdd3','#9f1239','#fff1f2'];
+const VIOLET = ['#8b5cf6','#a78bfa','#7c3aed','#c4b5fd','#6d28d9','#ddd6fe','#4c1d95','#ede9fe'];
+const MULTI  = [...AMBER,...ORANGE,...ROSE,...VIOLET];
+
+const LANG_COLORS = { ENGLISH:'#fbbf24', TAMIL:'#f97316', TELUGU:'#f43f5e', HINDI:'#a78bfa', KANNADA:'#34d399' };
+const MODE_COLORS = { Weekend:'#f43f5e', Weekday:'#fbbf24' };
+
+function getLangColor(l,i) { return LANG_COLORS[l.toUpperCase()] || MULTI[i%MULTI.length]; }
+
+/* ── CHART CONFIG HELPERS ── */
+const gridColor = 'rgba(251,191,36,0.06)';
+function baseOpts(xc,yc,stacked=false) {
+    return {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{labels:{color:xc||'#fcd34d',font:{size:10}}}, datalabels:{display:false} },
+        scales:{
+            x:{ stacked, ticks:{color:xc||'#fcd34d',font:{size:10}}, grid:{color:gridColor} },
+            y:{ stacked, ticks:{color:yc||'#fcd34d',font:{size:10}}, grid:{color:gridColor}, beginAtZero:true }
+        }
+    };
+}
+
+/* ── RAW DATA ── */
+const langPivotRaw  = {{ lang_pivot | tojson }};
+const modePivotRaw  = {{ mode_pivot | tojson }};
+const langList      = {{ lang_list | tojson }};
+const modeList      = {{ mode_list | tojson }};
+const initTitleLbls = {{ title_labels | tojson }};
+const initTitleVals = {{ title_values | tojson }};
+const initMpLbls    = {{ mentor_proj_labels | tojson }};
+const initMpVals    = {{ mentor_proj_values | tojson }};
+const initModeLbls  = {{ mode_labels | tojson }};
+const initModeVals  = {{ mode_values | tojson }};
+const initAssLbls   = {{ assigned_labels | tojson }};
+const initAssVals   = {{ assigned_values | tojson }};
+const initCompLbls  = {{ completion_labels | tojson }};
+const initCompTot   = {{ completion_total | tojson }};
+const initCompAss   = {{ completion_assigned | tojson }};
+
+/* ── BUILD STACKED DATASETS ── */
+function buildLangStacked(pivot, langs) {
+    const mentors = [...new Set(pivot.map(r=>r.Mentor))];
+    const datasets = langs.map((l,i) => ({
+        label: l,
+        data: mentors.map(m => { const r=pivot.find(p=>p.Mentor===m&&p.Language===l); return r?r.count:0; }),
+        backgroundColor: getLangColor(l,i),
+        borderSkipped: false,
+    }));
+    return { labels:mentors, datasets };
+}
+
+function buildModeStacked(pivot, modes) {
+    const mentors = [...new Set(pivot.map(r=>r.Mentor))];
+    const datasets = modes.map((mo,i) => ({
+        label: mo,
+        data: mentors.map(m => { const r=pivot.find(p=>p.Mentor===m&&p.Mode_Simple===mo); return r?r.count:0; }),
+        backgroundColor: MODE_COLORS[mo] || AMBER[i],
+        borderSkipped: false,
+    }));
+    return { labels:mentors, datasets };
+}
+
+/* ── INIT CHARTS ── */
+let titleBatchChart = new Chart(document.getElementById('titleBatchChart'), {
+    type:'bar',
+    data:{ labels:initTitleLbls, datasets:[{label:'Batches',data:initTitleVals,
+        backgroundColor:AMBER, borderRadius:8, borderSkipped:false}] },
+    options:{
+        ...baseOpts('#fcd34d','#fcd34d'), indexAxis:'y',
+        plugins:{ legend:{display:false},
+            datalabels:{color:'#fff',font:{weight:'bold',size:11},anchor:'end',align:'right',formatter:v=>v} }
+    }, plugins:[ChartDataLabels]
+});
+
+let mentorProjChart = new Chart(document.getElementById('mentorProjChart'), {
+    type:'bar',
+    data:{ labels:initMpLbls, datasets:[{label:'Unique Titles',data:initMpVals,
+        backgroundColor:ORANGE, borderRadius:8, borderSkipped:false}] },
+    options:{
+        ...baseOpts('#fdba74','#fdba74'),
+        plugins:{ legend:{display:false},
+            datalabels:{color:'#fff',font:{weight:'bold',size:12},anchor:'end',align:'top',formatter:v=>v} }
+    }, plugins:[ChartDataLabels]
+});
+
+let langStackedChart = new Chart(document.getElementById('langStackedChart'), {
+    type:'bar',
+    data: buildLangStacked(langPivotRaw, langList),
+    options: baseOpts('#fde68a','#fde68a', true),
+    plugins:[ChartDataLabels]
+});
+
+let modeStackedChart = new Chart(document.getElementById('modeStackedChart'), {
+    type:'bar',
+    data: buildModeStacked(modePivotRaw, modeList),
+    options: baseOpts('#fda4af','#fda4af', true),
+    plugins:[ChartDataLabels]
+});
+
+let modeDonutChart = new Chart(document.getElementById('modeDonutChart'), {
+    type:'doughnut',
+    data:{ labels:initModeLbls,
+        datasets:[{ data:initModeVals,
+            backgroundColor:initModeLbls.map(m=>MODE_COLORS[m]||'#fbbf24'),
+            borderWidth:0, hoverOffset:10 }] },
+    options:{
+        responsive:true, maintainAspectRatio:false, cutout:'55%',
+        plugins:{
+            legend:{position:'right',labels:{color:'#fde68a',font:{size:12},boxWidth:14}},
+            datalabels:{color:'#fff',font:{weight:'bold',size:12},formatter:(v,c)=>{
+                const t=c.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                return t>0?v+'\n('+((v/t)*100).toFixed(1)+'%)':'';
+            }}
+        }
+    }, plugins:[ChartDataLabels]
+});
+
+let assignedChart = new Chart(document.getElementById('assignedChart'), {
+    type:'bar',
+    data:{ labels:initAssLbls, datasets:[{label:'Assignments',data:initAssVals,
+        backgroundColor:VIOLET, borderRadius:8, borderSkipped:false}] },
+    options:{
+        ...baseOpts('#c4b5fd','#c4b5fd'),
+        plugins:{ legend:{display:false},
+            datalabels:{color:'#fff',font:{weight:'bold',size:12},anchor:'end',align:'top',formatter:v=>v} }
+    }, plugins:[ChartDataLabels]
+});
+
+let completionChart = new Chart(document.getElementById('completionChart'), {
+    type:'bar',
+    data:{
+        labels: initCompLbls,
+        datasets:[
+            { label:'Assigned', data:initCompAss, backgroundColor:'rgba(251,191,36,0.8)', borderRadius:{topLeft:6,topRight:6}, borderSkipped:false },
+            { label:'Remaining', data:initCompTot.map((t,i)=>Math.max(0,t-initCompAss[i])),
+              backgroundColor:'rgba(255,255,255,0.08)', borderRadius:{topLeft:6,topRight:6}, borderSkipped:false }
+        ]
+    },
+    options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{labels:{color:'#fcd34d',font:{size:11}}}, datalabels:{display:false} },
+        scales:{
+            x:{ stacked:true, ticks:{color:'#fcd34d',font:{size:9},maxRotation:60},grid:{color:gridColor} },
+            y:{ stacked:true, ticks:{color:'#fcd34d',font:{size:10}},grid:{color:gridColor},beginAtZero:true }
+        }
+    }
+});
+
+/* ── FILTER STATE ── */
+let activeSheet = 'all';
+
+function setSheet(s, btn) {
+    activeSheet = s;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilter();
+}
+
+function applyFilter() {
+    const mentor = document.getElementById('mentorFilter').value;
+    let data = rawRecords.slice();
+    if (activeSheet !== 'all') data = data.filter(d=>d.Sheet===activeSheet);
+    if (mentor !== 'all')      data = data.filter(d=>d.Mentor===mentor);
+
+    // recompute chart 1: title vs batches
+    const titleBatches = {};
+    data.filter(d=>d['Project Title'].trim().toLowerCase()!=='final')
+        .forEach(d=>{
+            const t=d['Project Title']; if(!t) return;
+            if(!titleBatches[t]) titleBatches[t]=new Set();
+            titleBatches[t].add(d.Batch);
+        });
+    const sortedTitles = Object.entries(titleBatches).sort((a,b)=>b[1].size-a[1].size).slice(0,20);
+    titleBatchChart.data.labels = sortedTitles.map(e=>e[0]);
+    titleBatchChart.data.datasets[0].data = sortedTitles.map(e=>e[1].size);
+    titleBatchChart.update();
+
+    // chart 2: unique projects per mentor
+    const mpMap = {};
+    data.filter(d=>d['Project Title'].trim().toLowerCase()!=='final')
+        .forEach(d=>{ if(!mpMap[d.Mentor]) mpMap[d.Mentor]=new Set(); mpMap[d.Mentor].add(d['Project Title']); });
+    const mpSorted = Object.entries(mpMap).sort((a,b)=>b[1].size-a[1].size);
+    mentorProjChart.data.labels = mpSorted.map(e=>e[0]);
+    mentorProjChart.data.datasets[0].data = mpSorted.map(e=>e[1].size);
+    mentorProjChart.update();
+
+    // chart 3: lang stacked
+    const langPivot = {};
+    data.forEach(d=>{ const key=d.Mentor+'|'+d.Language; if(!langPivot[key]) langPivot[key]={Mentor:d.Mentor,Language:d.Language,batches:new Set()}; langPivot[key].batches.add(d.Batch); });
+    const lpArr = Object.values(langPivot).map(r=>({Mentor:r.Mentor,Language:r.Language,count:r.batches.size}));
+    langStackedChart.data = buildLangStacked(lpArr, langList);
+    langStackedChart.update();
+
+    // chart 6: mode stacked
+    const modePivot = {};
+    data.forEach(d=>{ const ms=normMode(d.Mode); const key=d.Mentor+'|'+ms; if(!modePivot[key]) modePivot[key]={Mentor:d.Mentor,Mode_Simple:ms,batches:new Set()}; modePivot[key].batches.add(d.Batch); });
+    const mpArr2 = Object.values(modePivot).map(r=>({Mentor:r.Mentor,Mode_Simple:r.Mode_Simple,count:r.batches.size}));
+    modeStackedChart.data = buildModeStacked(mpArr2, modeList);
+    modeStackedChart.update();
+
+    // chart 4: mode donut
+    const mc={}; data.forEach(d=>{ const m=normMode(d.Mode); mc[m]=(mc[m]||0)+1; });
+    modeDonutChart.data.labels=Object.keys(mc);
+    modeDonutChart.data.datasets[0].data=Object.values(mc);
+    modeDonutChart.data.datasets[0].backgroundColor=Object.keys(mc).map(m=>MODE_COLORS[m]||'#fbbf24');
+    modeDonutChart.update();
+
+    // chart 5: assigned by
+    const ac={}; data.forEach(d=>{ if(d['Assigned by']) ac[d['Assigned by']]=(ac[d['Assigned by']]||0)+1; });
+    assignedChart.data.labels=Object.keys(ac);
+    assignedChart.data.datasets[0].data=Object.values(ac);
+    assignedChart.update();
+
+    // chart 7: completion
+    const batchMap={};
+    data.forEach(d=>{
+        const key=d.Sheet+'·'+d.Batch;
+        if(!batchMap[key]) batchMap[key]={total:0,assigned:0};
+        batchMap[key].total++;
+        if(d['Assigned Date']) batchMap[key].assigned++;
+    });
+    const bkeys=Object.keys(batchMap);
+    completionChart.data.labels=bkeys;
+    completionChart.data.datasets[0].data=bkeys.map(k=>batchMap[k].assigned);
+    completionChart.data.datasets[1].data=bkeys.map(k=>Math.max(0,batchMap[k].total-batchMap[k].assigned));
+    completionChart.update();
+}
+
+function normMode(m) {
+    const u=(m||'').toUpperCase().trim();
+    if(u.startsWith('WE')||u==='WEEKEND') return 'Weekend';
+    return 'Weekday';
+}
+
+function resetFilters() {
+    activeSheet='all';
+    document.querySelectorAll('.tab-btn').forEach((b,i)=>{ b.classList.toggle('active',i===0); });
+    document.getElementById('mentorFilter').value='all';
+    applyFilter();
+}
+</script>
+</body>
+</html>

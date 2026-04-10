@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tracker Alerts – MentorHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
+        body {
+            background:linear-gradient(135deg,#0a0000 0%,#1a0000 20%,#280505 45%,#180000 70%,#080000 100%);
+            min-height:100vh; font-family:'Inter',sans-serif;
+        }
+        h1,h2,.font-display { font-family:'Syne',sans-serif; }
+
+        .glow-red    { box-shadow:0 0 28px rgba(239,68,68,0.45),0 0 55px rgba(239,68,68,0.12); }
+        .glow-amber  { box-shadow:0 0 28px rgba(251,191,36,0.4),0 0 55px rgba(251,191,36,0.12); }
+        .glow-green  { box-shadow:0 0 28px rgba(34,197,94,0.4),0 0 55px rgba(34,197,94,0.12); }
+        .glow-gray   { box-shadow:0 0 28px rgba(100,116,139,0.3),0 0 55px rgba(100,116,139,0.08); }
+
+        .glass {
+            background:rgba(255,255,255,0.025);
+            border:1px solid rgba(239,68,68,0.18);
+            backdrop-filter:blur(18px); border-radius:20px;
+        }
+        .glass-amber {
+            background:rgba(251,191,36,0.04);
+            border:1px solid rgba(251,191,36,0.25);
+            backdrop-filter:blur(18px); border-radius:20px;
+        }
+        .kpi-card {
+            border-radius:18px; padding:1.4rem 1.3rem;
+            position:relative; overflow:hidden; transition:transform .3s,box-shadow .3s;
+        }
+        .kpi-card:hover { transform:translateY(-4px); }
+        .kpi-card::before {
+            content:''; position:absolute; top:-28px; right:-18px;
+            width:100px; height:100px; border-radius:50%;
+            background:radial-gradient(circle,rgba(255,255,255,0.08),transparent 70%);
+        }
+        .big-num { font-size:2.6rem; font-weight:900; line-height:1; letter-spacing:-.03em; font-family:'Syne',sans-serif; }
+
+        .alert-row {
+            border-radius:14px; padding:1rem 1.2rem;
+            border:1px solid rgba(239,68,68,0.2);
+            background:rgba(239,68,68,0.05);
+            transition:all .2s;
+        }
+        .alert-row:hover { background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.4); }
+        .alert-row.amber {
+            border-color:rgba(251,191,36,0.25);
+            background:rgba(251,191,36,0.05);
+        }
+        .alert-row.amber:hover { background:rgba(251,191,36,0.1); border-color:rgba(251,191,36,0.45); }
+        .alert-row.ok {
+            border-color:rgba(34,197,94,0.2);
+            background:rgba(34,197,94,0.04);
+        }
+
+        .badge {
+            display:inline-flex; align-items:center; gap:5px;
+            padding:3px 10px; border-radius:999px; font-size:.7rem; font-weight:700;
+        }
+        .badge-red    { background:rgba(239,68,68,0.2);   border:1px solid rgba(239,68,68,0.4);   color:#fca5a5; }
+        .badge-amber  { background:rgba(251,191,36,0.2);  border:1px solid rgba(251,191,36,0.4);  color:#fde68a; }
+        .badge-green  { background:rgba(34,197,94,0.2);   border:1px solid rgba(34,197,94,0.4);   color:#86efac; }
+        .badge-gray   { background:rgba(100,116,139,0.2); border:1px solid rgba(100,116,139,0.35);color:#cbd5e1; }
+
+        .section-header {
+            display:flex; align-items:center; gap:16px; margin-bottom:20px;
+        }
+        .section-header::after {
+            content:''; flex:1; height:1px;
+            background:linear-gradient(90deg,rgba(239,68,68,0.4),transparent);
+        }
+        .section-header.amber::after {
+            background:linear-gradient(90deg,rgba(251,191,36,0.4),transparent);
+        }
+        .section-header.green::after {
+            background:linear-gradient(90deg,rgba(34,197,94,0.4),transparent);
+        }
+
+        .chart-box { border-radius:20px; padding:1.5rem; }
+        .chart-title { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; margin-bottom:1rem; font-family:'Syne',sans-serif; } 100%{transform:translateX(-50%)} }
+
+        .nav-active { background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.5); color:#fca5a5; }
+
+        .badge-neon {
+            display:inline-flex; align-items:center; gap:6px;
+            padding:4px 14px; border-radius:999px;
+            font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+        }
+        .pulse-dot { animation:pdot 1.4s ease-in-out infinite; }
+        @keyframes pdot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+
+        ::-webkit-scrollbar { width:5px; height:5px; }
+        ::-webkit-scrollbar-thumb { background:rgba(239,68,68,0.35); border-radius:5px; }
+
+        table { width:100%; border-collapse:collapse; }
+        th { text-align:left; font-size:.7rem; font-weight:700; text-transform:uppercase;
+             letter-spacing:.08em; color:#6b7280; padding:.6rem 1rem; border-bottom:1px solid rgba(255,255,255,0.06); }
+        td { padding:.75rem 1rem; font-size:.85rem; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:middle; }
+        tr:last-child td { border-bottom:none; }
+        tr:hover td { background:rgba(255,255,255,0.02); }
+    </style>
+</head>
+<body class="text-white">
+
+<!-- NAV -->
+<nav class="sticky top-0 z-50 bg-black/80 backdrop-blur-lg border-b border-red-900/30 px-6 py-3 flex items-center justify-between">
+    <a href="/">
+        <img src="/static/logo.webp" alt="MentorHub" class="h-9 w-auto"
+             onerror="this.outerHTML='<span style=\'background:linear-gradient(135deg,#fbbf24,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.1rem;font-weight:800;\'>✦ MentorHub</span>'" />
+    </a>
+    <div class="flex gap-2 text-sm">
+        <a href="/"               class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🏠 Home</a>
+        <a href="/queries"        class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">📊 Queries</a>
+        <a href="/projects"       class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🎯 Projects</a>
+        <a href="/sessions"       class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🗓️ Sessions</a>
+        <a href="/tracker"        class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">📌 Tracker</a>
+        <a href="/tracker-alerts" class="px-4 py-2 rounded-lg nav-active">🚨 Alerts</a>
+    </div>
+</nav>
+
+<div class="px-6 py-8 max-w-screen-xl mx-auto">
+
+    <!-- PAGE HEADER -->
+    <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
+        <div>
+            <div class="badge-neon mb-3" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;">
+                <span class="pulse-dot w-2 h-2 rounded-full bg-red-400 inline-block"></span>
+                Automated Alert System
+            </div>
+            <h1 class="text-5xl font-display font-black mb-1"
+                style="background:linear-gradient(135deg,#fca5a5,#ef4444,#fbbf24,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+                🚨 Alert Dashboard
+            </h1>
+            <p class="text-gray-500 text-sm mt-1">
+                Deadline & out-of-order alerts · Emails sent automatically every 24 h ·
+                <span class="text-amber-400">Configure SMTP + emails in app.py</span>
+            </p>
+        </div>
+        <a href="/tracker" class="px-5 py-2.5 rounded-xl font-semibold text-sm text-amber-300 border border-amber-700/50 hover:bg-amber-900/20 transition">
+            ← Back to Tracker
+        </a>
+    </div>
+
+    <!-- KPI ROW -->
+    {% set deadline_count = deadline_today|length %}
+    {% set ooo_count      = ooo_batches|length %}
+    {% set log_sent       = alert_log|selectattr('sent','equalto',True)|list|length %}
+    {% set log_failed     = alert_log|selectattr('sent','equalto',False)|list|length %}
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="kpi-card glow-red" style="background:linear-gradient(135deg,rgba(239,68,68,0.28),rgba(153,27,27,0.12));border:1px solid rgba(239,68,68,0.45);">
+            <div class="text-2xl mb-2">🔴</div>
+            <div class="big-num text-red-200">{{ deadline_count }}</div>
+            <div class="text-xs uppercase tracking-widest text-red-400 mt-2 font-semibold">Deadlines Today</div>
+        </div>
+        <div class="kpi-card glow-amber" style="background:linear-gradient(135deg,rgba(251,191,36,0.28),rgba(180,130,10,0.12));border:1px solid rgba(251,191,36,0.45);">
+            <div class="text-2xl mb-2">⚠️</div>
+            <div class="big-num text-amber-200">{{ ooo_count }}</div>
+            <div class="text-xs uppercase tracking-widest text-amber-400 mt-2 font-semibold">Out-of-Order Finals</div>
+        </div>
+        <div class="kpi-card glow-green" style="background:linear-gradient(135deg,rgba(34,197,94,0.28),rgba(20,120,50,0.12));border:1px solid rgba(34,197,94,0.45);">
+            <div class="text-2xl mb-2">✅</div>
+            <div class="big-num text-green-200">{{ log_sent }}</div>
+            <div class="text-xs uppercase tracking-widest text-green-400 mt-2 font-semibold">Emails Sent</div>
+        </div>
+        <div class="kpi-card glow-gray" style="background:linear-gradient(135deg,rgba(100,116,139,0.25),rgba(50,60,70,0.1));border:1px solid rgba(100,116,139,0.4);">
+            <div class="text-2xl mb-2">❌</div>
+            <div class="big-num text-slate-300">{{ log_failed }}</div>
+            <div class="text-xs uppercase tracking-widest text-slate-400 mt-2 font-semibold">Send Failures</div>
+        </div>
+    </div>
+
+    <!-- EMAIL CONFIG REMINDER -->
+    <div class="glass-amber px-5 py-4 mb-8 flex items-start gap-4">
+        <span class="text-2xl mt-0.5">⚙️</span>
+        <div>
+            <div class="font-bold text-amber-300 text-sm font-display mb-1">Email Configuration Required</div>
+            <div class="text-xs text-gray-400 leading-relaxed">
+                Open <code class="bg-black/40 px-1.5 py-0.5 rounded text-amber-300">app.py</code> and fill in:
+                <span class="text-white font-semibold">SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD</span> for your mail server,
+                <span class="text-white font-semibold">MENTOR_EMAILS</span> dict with each mentor's email address, and
+                <span class="text-white font-semibold">MANAGER_EMAIL</span> for the reporting manager.
+                Alerts run automatically every <strong class="text-amber-300">24 hours</strong> via APScheduler
+                (install with <code class="bg-black/40 px-1.5 py-0.5 rounded text-amber-300">pip install apscheduler</code>).
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ SECTION 1: DEADLINE ALERTS ══ -->
+    <div class="section-header">
+        <h2 class="text-lg font-display font-black text-red-300 whitespace-nowrap">🔴 Deadline Alerts — Today</h2>
+    </div>
+
+    {% if deadline_today %}
+    <div class="glass mb-10 overflow-hidden" style="border-color:rgba(239,68,68,0.3);">
+        <table>
+            <thead>
+                <tr>
+                    <th>Sheet</th><th>Batch</th><th>Project Title</th>
+                    <th>Mentor</th><th>Deadline Date</th><th>Email Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in deadline_today %}
+                <tr>
+                    <td><span class="badge badge-gray">{{ d.Sheet }}</span></td>
+                    <td class="font-semibold text-white">{{ d.Batch }}</td>
+                    <td class="text-red-200">{{ d['Project Title'] }}</td>
+                    <td class="text-amber-300 font-semibold">{{ d.Mentor }}</td>
+                    <td>
+                        <span class="badge badge-red">
+                            📅 {{ d['Deadline Date'] if d['Deadline Date'] is string else d['Deadline Date'].strftime('%d/%m/%Y') }}
+                        </span>
+                    </td>
+                    <td>
+                        {% set log_entry = alert_log|selectattr('batch','equalto',d.Batch)|selectattr('type','equalto','Deadline')|list %}
+                        {% if log_entry %}
+                            {% if log_entry[0].sent %}
+                            <span class="badge badge-green">✅ Sent → {{ log_entry[0].email_to }}</span>
+                            {% else %}
+                            <span class="badge" style="background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;">❌ Failed — check SMTP config</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge badge-gray">⏳ Pending next run</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert-row ok flex items-center gap-3 mb-10">
+        <span class="text-2xl">✅</span>
+        <div>
+            <div class="font-semibold text-green-300">No deadlines today</div>
+            <div class="text-xs text-gray-500 mt-0.5">All batches are within their deadline window</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ══ SECTION 2: OUT-OF-ORDER FINAL ══ -->
+    <div class="section-header amber">
+        <h2 class="text-lg font-display font-black text-amber-300 whitespace-nowrap">⚠️ Final Project Assigned Out of Order</h2>
+    </div>
+
+    {% if ooo_batches %}
+    <div class="glass-amber mb-6 overflow-hidden">
+        <table>
+            <thead>
+                <tr style="border-bottom:1px solid rgba(251,191,36,0.15);">
+                    <th>Sheet</th><th>Batch</th><th>Mentor</th>
+                    <th>Final Assigned On</th><th>Issue</th><th>Email Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in ooo_batches %}
+                <tr>
+                    <td><span class="badge badge-gray">{{ b.sheet }}</span></td>
+                    <td class="font-semibold text-white">{{ b.batch }}</td>
+                    <td class="text-amber-300 font-semibold">{{ b.mentor }}</td>
+                    <td><span class="badge badge-amber">📅 {{ b.final_date }}</span></td>
+                    <td class="text-xs text-red-300">Final assigned before preceding project(s)</td>
+                    <td>
+                        {% set log_entry = alert_log|selectattr('batch','equalto',b.batch)|selectattr('type','equalto','Out-of-Order Final')|list %}
+                        {% if log_entry %}
+                            {% if log_entry[0].sent %}
+                            <span class="badge badge-green">✅ Sent → {{ log_entry[0].email_to }}</span>
+                            {% else %}
+                            <span class="badge" style="background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;">❌ Failed — check SMTP + emails</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge badge-gray">⏳ Pending next run</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="text-xs text-gray-500 mb-10 px-1">
+        ⚙️ Alert emails go to <strong class="text-amber-400">the mentor</strong> + <strong class="text-amber-400">MANAGER_EMAIL</strong> configured in app.py
+    </div>
+    {% else %}
+    <div class="alert-row ok flex items-center gap-3 mb-10">
+        <span class="text-2xl">✅</span>
+        <div>
+            <div class="font-semibold text-green-300">No out-of-order finals detected</div>
+            <div class="text-xs text-gray-500 mt-0.5">All batches have Final project assigned in correct order</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ══ SECTION 3: ALERT LOG ══ -->
+    <div class="section-header green">
+        <h2 class="text-lg font-display font-black text-green-300 whitespace-nowrap">📋 Alert Email Log</h2>
+    </div>
+
+    {% if alert_log %}
+    <div class="glass mb-10 overflow-hidden" style="border-color:rgba(34,197,94,0.2);">
+        <table>
+            <thead>
+                <tr>
+                    <th>Time</th><th>Type</th><th>Sheet</th><th>Batch</th>
+                    <th>Mentor</th><th>Detail</th><th>Sent To</th><th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in alert_log %}
+                <tr>
+                    <td class="text-xs text-gray-500 whitespace-nowrap">{{ entry.sent_at }}</td>
+                    <td>
+                        {% if entry.type == 'Deadline' %}
+                        <span class="badge badge-red">🔴 Deadline</span>
+                        {% else %}
+                        <span class="badge badge-amber">⚠️ Out-of-Order</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="badge badge-gray">{{ entry.sheet }}</span></td>
+                    <td class="font-semibold text-white text-sm">{{ entry.batch }}</td>
+                    <td class="text-amber-300 text-sm">{{ entry.mentor }}</td>
+                    <td class="text-xs text-gray-400">{{ entry.detail }}</td>
+                    <td class="text-xs text-blue-300 font-mono">{{ entry.email_to }}</td>
+                    <td>
+                        {% if entry.sent %}
+                        <span class="badge badge-green">✅ Sent</span>
+                        {% else %}
+                        <span class="badge" style="background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;">❌ Failed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert-row ok flex items-center gap-3 mb-10">
+        <span class="text-2xl">📭</span>
+        <div>
+            <div class="font-semibold text-green-300">No alerts have fired yet this session</div>
+            <div class="text-xs text-gray-500 mt-0.5">Visit <code class="bg-black/30 px-1 rounded">/tracker</code> to trigger the first check, or wait for the 24-hour scheduler</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ══ SECTION 4: UPCOMING DEADLINES (next 7 days) ══ -->
+    <div class="section-header">
+        <h2 class="text-lg font-display font-black text-orange-300 whitespace-nowrap">📅 Upcoming Deadlines — Next 7 Days</h2>
+    </div>
+
+    <div class="glass mb-6 overflow-hidden" style="border-color:rgba(249,115,22,0.25);">
+        <div id="upcomingTable">
+            <div class="px-6 py-8 text-center text-gray-500 text-sm">Computing from tracker data…</div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+<script>
+/* Build upcoming deadlines table from raw records in JS */
+const rawRecords = {{ tracker_records | tojson }};
+
+function buildUpcomingTable() {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const in7   = new Date(today); in7.setDate(in7.getDate()+7);
+
+    const upcoming = rawRecords.filter(r => {
+        if(!r['Deadline Date']) return false;
+        const d = new Date(r['Deadline Date']);
+        return d > today && d <= in7;
+    }).sort((a,b) => new Date(a['Deadline Date']) - new Date(b['Deadline Date']));
+
+    const container = document.getElementById('upcomingTable');
+    if(!upcoming.length) {
+        container.innerHTML = '<div class="px-6 py-8 text-center text-green-400 font-semibold">✅ No deadlines in the next 7 days</div>';
+        return;
+    }
+
+    const daysLeft = d => {
+        const diff = Math.ceil((new Date(d) - today) / 86400000);
+        return diff;
+    };
+
+    const badgeColor = days => days <= 2
+        ? 'background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;'
+        : days <= 4
+        ? 'background:rgba(251,191,36,0.2);border:1px solid rgba(251,191,36,0.4);color:#fde68a;'
+        : 'background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#86efac;';
+
+    let html = `<table>
+        <thead><tr>
+            <th>Sheet</th><th>Batch</th><th>Project Title</th>
+            <th>Mentor</th><th>Deadline</th><th>Days Left</th>
+        </tr></thead><tbody>`;
+
+    upcoming.forEach(r => {
+        const days = daysLeft(r['Deadline Date']);
+        const dl   = new Date(r['Deadline Date']).toLocaleDateString('en-GB');
+        html += `<tr>
+            <td><span style="display:inline-flex;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700;background:rgba(100,116,139,0.2);border:1px solid rgba(100,116,139,0.35);color:#cbd5e1;">${r.Sheet}</span></td>
+            <td class="font-semibold text-white">${r.Batch}</td>
+            <td style="color:#fdba74;">${r['Project Title']}</td>
+            <td style="color:#fcd34d;font-weight:600;">${r.Mentor}</td>
+            <td style="font-size:.85rem;color:#9ca3af;">${dl}</td>
+            <td><span style="display:inline-flex;padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:700;${badgeColor(days)}">${days} day${days!==1?'s':''}</span></td>
+        </tr>`;
+    });
+
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+buildUpcomingTable();
+</script>
+</body>
+</html>

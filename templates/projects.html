@@ -13,13 +13,10 @@
             min-height: 100vh;
             font-family: 'Space Grotesk', sans-serif;
         }
-
-        /* Vivid glow */
         .glow-indigo  { box-shadow: 0 0 30px rgba(99,102,241,0.45), 0 0 60px rgba(99,102,241,0.15); }
         .glow-emerald { box-shadow: 0 0 30px rgba(16,185,129,0.45), 0 0 60px rgba(16,185,129,0.15); }
         .glow-sky     { box-shadow: 0 0 30px rgba(56,189,248,0.45), 0 0 60px rgba(56,189,248,0.15); }
         .glow-violet  { box-shadow: 0 0 30px rgba(139,92,246,0.45), 0 0 60px rgba(139,92,246,0.15); }
-
         .glass {
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(99,102,241,0.18);
@@ -32,7 +29,6 @@
             backdrop-filter: blur(16px);
             border-radius: 20px;
         }
-
         .kpi-card {
             border-radius: 18px; padding: 1.4rem 1.3rem;
             position: relative; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;
@@ -47,30 +43,6 @@
             font-size: 2.6rem; font-weight: 900; line-height: 1;
             letter-spacing: -0.02em;
         }
-
-        /* Mentor cards */
-        .m-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(99,102,241,0.2);
-            border-radius: 16px; cursor: pointer; transition: all 0.25s ease;
-            position: relative; overflow: hidden;
-        }
-        .m-card:hover {
-            border-color: rgba(99,102,241,0.6);
-            background: rgba(99,102,241,0.1);
-            transform: translateY(-4px);
-            box-shadow: 0 8px 30px rgba(99,102,241,0.25);
-        }
-        .m-card.active {
-            border-color: #6366f1 !important;
-            background: rgba(99,102,241,0.18) !important;
-            box-shadow: 0 0 0 2px rgba(99,102,241,0.5), 0 10px 35px rgba(99,102,241,0.3);
-        }
-        .m-card.active::after {
-            content: '✓'; position: absolute; top:6px; right:8px;
-            font-size:10px; color:#818cf8; font-weight:900;
-        }
-
         .fsel {
             background: rgba(49,46,129,0.35); border: 1px solid rgba(99,102,241,0.4);
             color: #c7d2fe; border-radius: 12px; padding: 0.55rem 1rem;
@@ -79,25 +51,16 @@
         }
         .fsel:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.2); }
         .fsel option { background: #1e1b4b; }
-
         .chart-box { border-radius: 20px; padding: 1.5rem; transition: box-shadow 0.3s; }
         .chart-box:hover { box-shadow: 0 0 40px rgba(99,102,241,0.15); }
         .chart-title {
             font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
             letter-spacing: 0.1em; margin-bottom: 1rem;
             display: flex; align-items: center; gap: 0.5rem;
-        }
-
-        .ticker-wrap { overflow: hidden; white-space: nowrap; }
-        .ticker-inner { display: inline-block; animation: ticker 80s linear infinite; }
-        .ticker-inner:hover { animation-play-state: paused; }
-        @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-
+        } 100%{transform:translateX(-50%)} }
         ::-webkit-scrollbar { width:5px; height:5px; }
         ::-webkit-scrollbar-thumb { background:rgba(99,102,241,0.4); border-radius:5px; }
-
         .nav-active { background: rgba(99,102,241,0.25); border: 1px solid rgba(99,102,241,0.5); color: #c7d2fe; }
-
         .badge-neon {
             display:inline-flex; align-items:center; gap:6px;
             padding: 4px 14px; border-radius:999px;
@@ -105,8 +68,6 @@
         }
         .pulse-dot { animation: pdot 1.4s ease-in-out infinite; }
         @keyframes pdot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
-
-        /* Section dividers */
         .section-header {
             display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
         }
@@ -115,41 +76,27 @@
             background: linear-gradient(90deg,rgba(99,102,241,0.4),transparent);
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body class="text-white">
 
-<!-- ══ NAV ══ -->
+<!-- NAV -->
 <nav class="sticky top-0 z-50 bg-black/75 backdrop-blur-lg border-b border-indigo-900/40 px-6 py-3 flex items-center justify-between">
     <a href="/">
-        <img src="/static/logo.png" alt="MentorHub" class="h-9 w-auto"
+        <img src="/static/logo.webp" alt="MentorHub" class="h-9 w-auto"
              onerror="this.outerHTML='<span style=\'background:linear-gradient(135deg,#6366f1,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.1rem;font-weight:800;\'>✦ MentorHub</span>'" />
     </a>
     <div class="flex gap-2 text-sm">
         <a href="/"         class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🏠 Home</a>
-        <a href="/mentors"  class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">👥 Mentors</a>
         <a href="/queries"  class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">📊 Queries</a>
         <a href="/projects" class="px-4 py-2 rounded-lg nav-active">🎯 Projects</a>
-        <a href="/weekly"   class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">📅 Weekly</a>
-        <a href="/monthly"  class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🗓️ Monthly</a>
-        <a href="/yearly"   class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">📆 Yearly</a>
+        <a href="/sessions" class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🗓️ Sessions</a>
     </div>
 </nav>
 
-<!-- ══ TICKER ══ -->
-<div class="ticker-wrap py-2" style="background:linear-gradient(90deg,rgba(79,70,229,0.45),rgba(16,185,129,0.25),rgba(79,70,229,0.45));border-bottom:1px solid rgba(99,102,241,0.2);">
-    <div class="ticker-inner text-sm font-semibold text-indigo-200">
-        {% for m in mentor_stats %}
-        <span class="mx-8">🎯 {{ m.name }} &nbsp;·&nbsp; {{ m.total }} queries &nbsp;·&nbsp; {{ m.close_rate }}% resolved</span>
-        {% endfor %}
-        {% for m in mentor_stats %}
-        <span class="mx-8">🎯 {{ m.name }} &nbsp;·&nbsp; {{ m.total }} queries &nbsp;·&nbsp; {{ m.close_rate }}% resolved</span>
-        {% endfor %}
-    </div>
-</div>
-
 <div class="px-6 py-8 max-w-screen-xl mx-auto">
 
-    <!-- ══ PAGE HEADER ══ -->
+    <!-- PAGE HEADER -->
     <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
         <div>
             <div class="badge-neon mb-3" style="background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc;">
@@ -162,36 +109,26 @@
             </h1>
             <p class="text-gray-500 text-sm mt-1">Doubt sessions, live evaluations & Zen portal data · Filter by mentor or date</p>
         </div>
+        <button onclick="downloadDashboard()"
+            class="px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition"
+            id="downloadBtn"
+            style="background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04));border:1px solid rgba(255,255,255,0.15);color:#e5e7eb;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            Download PNG
+        </button>
         <a href="/queries" class="px-5 py-2.5 rounded-xl font-semibold text-sm text-indigo-300 border border-indigo-700/50 hover:bg-indigo-900/30 hover:border-indigo-500 transition">
             ← Back to Queries
         </a>
     </div>
 
-    <!-- ══ KPI ROW ══ -->
+    <!-- KPI ROW -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div class="kpi-card glow-indigo" style="background:linear-gradient(135deg,rgba(99,102,241,0.3),rgba(67,56,202,0.15));border:1px solid rgba(99,102,241,0.5);">
-            <div class="text-2xl mb-2">🎓</div>
-            <div class="big-num text-indigo-200" id="kpiDoubtSessions">{{ doubt_total_sessions }}</div>
-            <div class="text-xs uppercase tracking-widest text-indigo-400 mt-2 font-semibold">Doubt Sessions</div>
-        </div>
-        <div class="kpi-card glow-emerald" style="background:linear-gradient(135deg,rgba(16,185,129,0.3),rgba(5,150,105,0.15));border:1px solid rgba(16,185,129,0.5);">
-            <div class="text-2xl mb-2">👨‍🎓</div>
-            <div class="big-num text-emerald-200" id="kpiLearners">{{ doubt_total_learners }}</div>
-            <div class="text-xs uppercase tracking-widest text-emerald-400 mt-2 font-semibold">Total Learners</div>
-        </div>
-        <div class="kpi-card glow-sky" style="background:linear-gradient(135deg,rgba(56,189,248,0.3),rgba(14,165,233,0.15));border:1px solid rgba(56,189,248,0.5);">
-            <div class="text-2xl mb-2">📋</div>
-            <div class="big-num text-sky-200" id="kpiEvals">{{ liveeval_total }}</div>
-            <div class="text-xs uppercase tracking-widest text-sky-400 mt-2 font-semibold">Projects Evaluated</div>
-        </div>
-        <div class="kpi-card glow-violet" style="background:linear-gradient(135deg,rgba(139,92,246,0.3),rgba(109,40,217,0.15));border:1px solid rgba(139,92,246,0.5);">
-            <div class="text-2xl mb-2">⚡</div>
-            <div class="big-num text-violet-200">{{ total_mentors }}</div>
-            <div class="text-xs uppercase tracking-widest text-violet-400 mt-2 font-semibold">Active Mentors</div>
-        </div>
+        
     </div>
 
-    <!-- ══ FILTER BAR ══ -->
+    <!-- FILTER BAR -->
     <div class="glass-bright flex flex-wrap items-center gap-4 px-5 py-4 mb-8">
         <span class="text-xs text-indigo-400 uppercase tracking-widest font-bold">🔍 Filter</span>
         <select class="fsel" id="mentorFilter" onchange="onMentorFilterChange()">
@@ -214,37 +151,16 @@
         <span id="filterLabel" class="text-xs text-indigo-300 font-semibold ml-auto px-3 py-1 rounded-lg" style="background:rgba(99,102,241,0.12);display:none;"></span>
     </div>
 
-    <!-- ══ MENTOR CARDS ══ -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-10">
-        {% for m in mentor_stats %}
-        <div class="m-card p-4 text-center"
-             data-name="{{ m.name }}"
-             onclick="selectMentor(this)">
-            <div class="w-14 h-14 rounded-full mx-auto mb-3 flex items-center justify-center text-lg font-black overflow-hidden relative"
-                 style="background:linear-gradient(135deg,#4f46e5,#10b981);box-shadow:0 4px 20px rgba(99,102,241,0.5);">
-                <img src="/static/caricatures/{{ m.name|replace(' ','_') }}.gif"
-                     onerror="this.style.display='none'"
-                     class="absolute inset-0 w-full h-full object-cover rounded-full" alt=""/>
-                <span class="relative z-10 text-white text-sm font-black">{{ m.name[0] }}{{ m.name.split(' ')[1][0] if m.name.split(' ')|length > 1 else '' }}</span>
-            </div>
-            <div class="text-xs font-bold text-indigo-100 leading-tight mb-1 truncate px-1">{{ m.name }}</div>
-            <div class="text-xs text-gray-500">{{ m.total }} queries</div>
-        </div>
-        {% endfor %}
-    </div>
-
-    <!-- ══ SECTION 1: PROJECT DOUBT SESSIONS ══ -->
+    <!-- SECTION 1: PROJECT DOUBT SESSIONS -->
     <div class="section-header">
         <h2 class="text-lg font-black text-emerald-300 whitespace-nowrap">📚 Project Doubt Sessions</h2>
     </div>
 
-    <!-- Stacked bar: learners per mentor per date -->
     <div class="chart-box glass mb-6" style="border-color:rgba(16,185,129,0.35);">
         <div class="chart-title text-emerald-300">🎓 Doubt Session Learners per Mentor — Stacked by Date</div>
         <div style="height:320px;"><canvas id="doubtStackedChart"></canvas></div>
     </div>
 
-    <!-- Bar + trend row -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
         <div class="chart-box glass" style="border-color:rgba(16,185,129,0.3);">
             <div class="chart-title text-emerald-400">🎓 Total Learners per Mentor</div>
@@ -256,7 +172,7 @@
         </div>
     </div>
 
-    <!-- ══ SECTION 2: PROJECTS EVALUATED ══ -->
+    <!-- SECTION 2: PROJECTS EVALUATED -->
     <div class="section-header">
         <h2 class="text-lg font-black text-sky-300 whitespace-nowrap">📋 Projects Evaluated</h2>
     </div>
@@ -277,46 +193,26 @@
         </div>
     </div>
 
-    <!-- ══ SECTION 3: ZEN PORTAL PER MENTOR ══ -->
-    <div class="section-header">
-        <h2 class="text-lg font-black text-violet-300 whitespace-nowrap">⚡ Zen Portal Status per Mentor</h2>
-    </div>
-
-    <div class="chart-box glass mb-10" style="border-color:rgba(139,92,246,0.35);">
-        <div class="chart-title text-violet-300">⚡ Zen Portal Status — Stacked Bar per Mentor</div>
-        <div style="height:300px;"><canvas id="zenStackedChart"></canvas></div>
-    </div>
-
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
 <script>
-/* ── RAW DATA ── */
-const doubtRaw    = {{ doubt_records | tojson }};     // [{Date, Mentor, Count}]
-const liveevalRaw = {{ liveeval_records | tojson }};  // [{Date, Zen portal, Mentor}]
-const allMentors  = {{ mentors | tojson }};
+/* RAW DATA */
+const doubtRaw    = {{ doubt_records | tojson }};
+const liveevalRaw = {{ liveeval_records | tojson }};
 
-/* ── PALETTES ── */
+/* PALETTES */
 const EMERALD = ['#10b981','#34d399','#6ee7b7','#059669','#047857','#a7f3d0','#065f46','#d1fae5'];
 const SKY     = ['#38bdf8','#7dd3fc','#0ea5e9','#0284c7','#bae6fd','#075985','#e0f2fe','#0c4a6e'];
 const VIOLET  = ['#8b5cf6','#a78bfa','#7c3aed','#c4b5fd','#6d28d9','#ddd6fe','#4c1d95','#ede9fe'];
-const ZEN_COLORS = {};
 
-/* ── COLLECT ALL UNIQUE DATES ── */
-const allDoubtDates = [...new Set(doubtRaw.map(d=>d.Date).filter(Boolean))].sort();
-const allEvalDates  = [...new Set(liveevalRaw.map(d=>d.Date).filter(Boolean))].sort();
-
-/* ── HELPERS ── */
+/* CHART BUILDERS */
 function buildDoubtStacked(data) {
-    // Group by Mentor, datasets by Date
     const mentors = [...new Set(data.map(d=>d.Mentor).filter(Boolean))];
     const dates   = [...new Set(data.map(d=>d.Date).filter(Boolean))].sort();
     const datasets = dates.map((dt, i) => ({
         label: dt,
-        data: mentors.map(m => {
-            const rows = data.filter(r=>r.Mentor===m && r.Date===dt);
-            return rows.reduce((s,r)=>s+Number(r.Count||0),0);
-        }),
+        data: mentors.map(m => data.filter(r=>r.Mentor===m && r.Date===dt).reduce((s,r)=>s+Number(r.Count||0),0)),
         backgroundColor: EMERALD[i % EMERALD.length],
         borderSkipped: false,
     }));
@@ -335,48 +231,54 @@ function buildEvalStacked(data) {
     return { labels: mentors, datasets };
 }
 
-function buildZenStacked(data) {
-    const mentors  = [...new Set(data.map(d=>d.Mentor).filter(Boolean))];
-    const statuses = [...new Set(data.map(d=>d['Zen portal']).filter(Boolean))];
-    const datasets = statuses.map((s, i) => ({
-        label: s,
-        data: mentors.map(m => data.filter(r=>r.Mentor===m && r['Zen portal']===s).length),
-        backgroundColor: VIOLET[i % VIOLET.length],
-        borderSkipped: false,
-    }));
-    return { labels: mentors, datasets };
-}
-
-function stackedOpts(xc, yc) {
-    return {
-        responsive:true, maintainAspectRatio:false,
-        plugins:{ legend:{labels:{color: xc||'#c7d2fe',font:{size:10}}}, datalabels:{display:false} },
-        scales:{
-            x:{ stacked:true, ticks:{color:xc||'#c7d2fe',font:{size:10}}, grid:{color:'rgba(99,102,241,0.06)'} },
-            y:{ stacked:true, ticks:{color:yc||'#c7d2fe',font:{size:10}}, grid:{color:'rgba(99,102,241,0.06)'}, beginAtZero:true }
-        }
-    };
-}
-
-/* ── INIT: DOUBT STACKED ── */
-let doubtStackedChart = new Chart(document.getElementById('doubtStackedChart'), {
-    type:'bar', data: buildDoubtStacked(doubtRaw),
-    options: { ...stackedOpts('#6ee7b7','#6ee7b7') },
-    plugins:[ChartDataLabels]
-});
-
-/* ── INIT: DOUBT LEARNERS BAR ── */
 function buildDoubtLearners(data) {
     const mc = {};
     data.forEach(d=>{ if(d.Mentor) mc[d.Mentor]=(mc[d.Mentor]||0)+Number(d.Count||0); });
     const sorted = Object.entries(mc).sort((a,b)=>b[1]-a[1]);
     return { labels: sorted.map(e=>e[0]), values: sorted.map(e=>e[1]) };
 }
-let { labels: dlLabels, values: dlValues } = buildDoubtLearners(doubtRaw);
+
+function buildDoubtTrend(data) {
+    const dc = {};
+    data.forEach(d=>{if(d.Date)dc[d.Date]=(dc[d.Date]||0)+Number(d.Count||0);});
+    const dl = Object.keys(dc).sort();
+    return { labels:dl, values:dl.map(d=>dc[d]) };
+}
+
+function buildEvalsBar(data) {
+    const mc = {};
+    data.forEach(d=>{ if(d.Mentor) mc[d.Mentor]=(mc[d.Mentor]||0)+1; });
+    const sorted = Object.entries(mc).sort((a,b)=>b[1]-a[1]);
+    return { labels:sorted.map(e=>e[0]), values:sorted.map(e=>e[1]) };
+}
+
+function buildZenDonut(data) {
+    const sc = {};
+    data.forEach(d=>{if(d['Zen portal'])sc[d['Zen portal']]=(sc[d['Zen portal']]||0)+1;});
+    return { labels:Object.keys(sc), values:Object.values(sc) };
+}
+
+function stackedOpts(color) {
+    return {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{labels:{color:color,font:{size:10}}}, datalabels:{display:false} },
+        scales:{
+            x:{ stacked:true, ticks:{color:color,font:{size:10}}, grid:{color:'rgba(99,102,241,0.06)'} },
+            y:{ stacked:true, ticks:{color:color,font:{size:10}}, grid:{color:'rgba(99,102,241,0.06)'}, beginAtZero:true }
+        }
+    };
+}
+
+/* INIT CHARTS */
+let doubtStackedChart = new Chart(document.getElementById('doubtStackedChart'), {
+    type:'bar', data: buildDoubtStacked(doubtRaw),
+    options: stackedOpts('#6ee7b7'), plugins:[ChartDataLabels]
+});
+
+let { labels: dlL, values: dlV } = buildDoubtLearners(doubtRaw);
 let doubtLearnersChart = new Chart(document.getElementById('doubtLearnersChart'), {
     type:'bar',
-    data:{ labels:dlLabels, datasets:[{label:'Learners',data:dlValues,
-        backgroundColor:EMERALD, borderRadius:8, borderSkipped:false}] },
+    data:{ labels:dlL, datasets:[{label:'Learners',data:dlV,backgroundColor:EMERALD,borderRadius:8,borderSkipped:false}] },
     options:{
         responsive:true, maintainAspectRatio:false, indexAxis:'y',
         plugins:{ legend:{display:false}, datalabels:{color:'#fff',font:{weight:'bold',size:11},anchor:'end',align:'right',formatter:v=>v+' learners'} },
@@ -384,21 +286,13 @@ let doubtLearnersChart = new Chart(document.getElementById('doubtLearnersChart')
             x:{ticks:{color:'#6ee7b7',font:{size:10}},grid:{color:'rgba(16,185,129,0.07)'},beginAtZero:true},
             y:{ticks:{color:'#d1fae5',font:{size:11,weight:'600'}},grid:{display:false}}
         }
-    },
-    plugins:[ChartDataLabels]
+    }, plugins:[ChartDataLabels]
 });
 
-/* ── INIT: DOUBT TREND ── */
-function buildDoubtTrend(data) {
-    const dc = {};
-    data.forEach(d=>{if(d.Date)dc[d.Date]=(dc[d.Date]||0)+Number(d.Count||0);});
-    const dl = Object.keys(dc).sort();
-    return { labels:dl, values:dl.map(d=>dc[d]) };
-}
-let { labels: dtLabels, values: dtValues } = buildDoubtTrend(doubtRaw);
+let { labels: dtL, values: dtV } = buildDoubtTrend(doubtRaw);
 let doubtTrendChart = new Chart(document.getElementById('doubtTrendChart'), {
     type:'line',
-    data:{labels:dtLabels,datasets:[{label:'Learners',data:dtValues,
+    data:{labels:dtL,datasets:[{label:'Learners',data:dtV,
         borderColor:'#34d399',backgroundColor:'rgba(52,211,153,0.12)',
         pointBackgroundColor:'#6ee7b7',tension:0.4,fill:true,pointRadius:4}]},
     options:{
@@ -409,44 +303,27 @@ let doubtTrendChart = new Chart(document.getElementById('doubtTrendChart'), {
     }
 });
 
-/* ── INIT: EVAL STACKED ── */
 let evalStackedChart = new Chart(document.getElementById('evalStackedChart'), {
     type:'bar', data: buildEvalStacked(liveevalRaw),
-    options: stackedOpts('#7dd3fc','#7dd3fc'),
-    plugins:[ChartDataLabels]
+    options: stackedOpts('#7dd3fc'), plugins:[ChartDataLabels]
 });
 
-/* ── INIT: EVALS BAR ── */
-function buildEvalsBar(data) {
-    const mc = {};
-    data.forEach(d=>{ if(d.Mentor) mc[d.Mentor]=(mc[d.Mentor]||0)+1; });
-    const sorted = Object.entries(mc).sort((a,b)=>b[1]-a[1]);
-    return { labels:sorted.map(e=>e[0]), values:sorted.map(e=>e[1]) };
-}
-let { labels: evLabels, values: evValues } = buildEvalsBar(liveevalRaw);
+let { labels: evL, values: evV } = buildEvalsBar(liveevalRaw);
 let evalsBarChart = new Chart(document.getElementById('evalsBarChart'), {
     type:'bar',
-    data:{labels:evLabels,datasets:[{label:'Evaluations',data:evValues,
-        backgroundColor:SKY, borderRadius:8, borderSkipped:false}]},
+    data:{labels:evL,datasets:[{label:'Evaluations',data:evV,backgroundColor:SKY,borderRadius:8,borderSkipped:false}]},
     options:{
         responsive:true, maintainAspectRatio:false,
         plugins:{legend:{display:false},datalabels:{color:'#fff',font:{weight:'bold',size:11},anchor:'end',align:'top'}},
         scales:{x:{ticks:{color:'#7dd3fc',font:{size:10}},grid:{color:'rgba(56,189,248,0.06)'}},
                 y:{ticks:{color:'#7dd3fc',font:{size:10}},grid:{color:'rgba(56,189,248,0.06)'},beginAtZero:true}}
-    },
-    plugins:[ChartDataLabels]
+    }, plugins:[ChartDataLabels]
 });
 
-/* ── INIT: ZEN DONUT ── */
-function buildZenDonut(data) {
-    const sc = {};
-    data.forEach(d=>{if(d['Zen portal'])sc[d['Zen portal']]=(sc[d['Zen portal']]||0)+1;});
-    return { labels:Object.keys(sc), values:Object.values(sc) };
-}
-let { labels: zdLabels, values: zdValues } = buildZenDonut(liveevalRaw);
+let { labels: zdL, values: zdV } = buildZenDonut(liveevalRaw);
 let zenDonutChart = new Chart(document.getElementById('zenDonutChart'), {
     type:'doughnut',
-    data:{labels:zdLabels,datasets:[{data:zdValues,backgroundColor:VIOLET,borderWidth:0,hoverOffset:10}]},
+    data:{labels:zdL,datasets:[{data:zdV,backgroundColor:VIOLET,borderWidth:0,hoverOffset:10}]},
     options:{
         responsive:true, maintainAspectRatio:false, cutout:'55%',
         plugins:{
@@ -456,103 +333,148 @@ let zenDonutChart = new Chart(document.getElementById('zenDonutChart'), {
                 return t>0?((v/t)*100).toFixed(1)+'%':'';
             }}
         }
-    },
-    plugins:[ChartDataLabels]
+    }, plugins:[ChartDataLabels]
 });
 
-/* ── INIT: ZEN STACKED per mentor ── */
-let zenStackedChart = new Chart(document.getElementById('zenStackedChart'), {
-    type:'bar', data: buildZenStacked(liveevalRaw),
-    options: stackedOpts('#a78bfa','#a78bfa'),
-    plugins:[ChartDataLabels]
-});
-
-/* ── UPDATE KPIs ── */
+/* UPDATE KPIs */
 function updateKPIs(dData, eData) {
     document.getElementById('kpiDoubtSessions').textContent = dData.length;
     document.getElementById('kpiLearners').textContent = dData.reduce((s,d)=>s+Number(d.Count||0),0);
     document.getElementById('kpiEvals').textContent = eData.length;
 }
 
-/* ── APPLY FILTERS ── */
-function applyFilters() {
-    const mentor = document.getElementById('mentorFilter').value;
-    const date   = document.getElementById('dateFilter').value;
-
-    let dData = doubtRaw;
-    let eData = liveevalRaw;
-    if (mentor !== 'all') { dData = dData.filter(d=>d.Mentor===mentor); eData = eData.filter(d=>d.Mentor===mentor); }
-    if (date   !== 'all') { dData = dData.filter(d=>d.Date===date);     eData = eData.filter(d=>d.Date===date); }
-
-    // Doubt charts
-    doubtStackedChart.data = buildDoubtStacked(dData);
+/* REBUILD ALL CHARTS from filtered data */
+function rebuildAllCharts(dData, eData) {
+    // Doubt stacked
+    const ds = buildDoubtStacked(dData);
+    doubtStackedChart.data = ds;
     doubtStackedChart.update();
 
+    // Doubt learners bar
     const dl = buildDoubtLearners(dData);
     doubtLearnersChart.data.labels = dl.labels;
     doubtLearnersChart.data.datasets[0].data = dl.values;
+    doubtLearnersChart.data.datasets[0].backgroundColor = EMERALD.slice(0, dl.labels.length);
     doubtLearnersChart.update();
 
+    // Doubt trend
     const dt = buildDoubtTrend(dData);
     doubtTrendChart.data.labels = dt.labels;
     doubtTrendChart.data.datasets[0].data = dt.values;
     doubtTrendChart.update();
 
-    // Eval charts
-    evalStackedChart.data = buildEvalStacked(eData);
+    // Eval stacked
+    const es = buildEvalStacked(eData);
+    evalStackedChart.data = es;
     evalStackedChart.update();
 
+    // Evals bar
     const ev = buildEvalsBar(eData);
     evalsBarChart.data.labels = ev.labels;
     evalsBarChart.data.datasets[0].data = ev.values;
+    evalsBarChart.data.datasets[0].backgroundColor = SKY.slice(0, ev.labels.length);
     evalsBarChart.update();
 
+    // Zen donut
     const zd = buildZenDonut(eData);
     zenDonutChart.data.labels = zd.labels;
     zenDonutChart.data.datasets[0].data = zd.values;
+    zenDonutChart.data.datasets[0].backgroundColor = VIOLET.slice(0, zd.labels.length);
     zenDonutChart.update();
 
-    zenStackedChart.data = buildZenStacked(eData);
-    zenStackedChart.update();
-
     updateKPIs(dData, eData);
+}
 
-    const active = mentor!=='all' || date!=='all';
-    document.getElementById('resetBtn').style.display = active ? 'inline-block':'none';
+/* APPLY FILTERS */
+function applyFilters() {
+    const mentor = document.getElementById('mentorFilter').value;
+    const date   = document.getElementById('dateFilter').value;
+
+    let dData = doubtRaw.slice();
+    let eData = liveevalRaw.slice();
+
+    if (mentor !== 'all') {
+        dData = dData.filter(d => d.Mentor === mentor);
+        eData = eData.filter(d => d.Mentor === mentor);
+    }
+    if (date !== 'all') {
+        dData = dData.filter(d => d.Date === date);
+        eData = eData.filter(d => d.Date === date);
+    }
+
+    rebuildAllCharts(dData, eData);
+
+    const active = mentor !== 'all' || date !== 'all';
+    document.getElementById('resetBtn').style.display = active ? 'inline-block' : 'none';
     const lbl = document.getElementById('filterLabel');
     lbl.style.display = active ? '' : 'none';
     lbl.textContent = active
-        ? 'Filtered'+(mentor!=='all'?' · '+mentor:'')+(date!=='all'?' · '+date:'') : '';
+        ? 'Filtered' + (mentor !== 'all' ? ' · ' + mentor : '') + (date !== 'all' ? ' · ' + date : '') : '';
 }
 
-/* ── MENTOR CARD SELECT ── */
+/* MENTOR CARD CLICK */
 function selectMentor(el) {
-    document.querySelectorAll('.m-card').forEach(c=>c.classList.remove('active'));
     el.classList.add('active');
     document.getElementById('mentorFilter').value = el.dataset.name;
     applyFilters();
-    el.scrollIntoView({behavior:'smooth', block:'nearest'});
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function onMentorFilterChange() {
     const val = document.getElementById('mentorFilter').value;
-    if (val === 'all') { resetAll(); return; }
-    const card = document.querySelector(`.m-card[data-name="${val}"]`);
-    document.querySelectorAll('.m-card').forEach(c=>c.classList.remove('active'));
-    if (card) card.classList.add('active');
+    if (val !== 'all') {
+    }
     applyFilters();
 }
 
-/* ── RESET ── */
+/* RESET */
 function resetAll() {
     document.getElementById('mentorFilter').value = 'all';
     document.getElementById('dateFilter').value   = 'all';
-    document.querySelectorAll('.m-card').forEach(c=>c.classList.remove('active'));
     document.getElementById('resetBtn').style.display = 'none';
     const lbl = document.getElementById('filterLabel');
     lbl.textContent = ''; lbl.style.display = 'none';
-    applyFilters();
+    rebuildAllCharts(doubtRaw, liveevalRaw);
 }
 </script>
+
+<script>
+function downloadDashboard() {
+    const btn = document.getElementById('downloadBtn');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<svg class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg> Capturing...';
+    btn.disabled = true;
+    const scrollY = window.scrollY;
+    window.scrollTo(0,0);
+    setTimeout(() => {
+        html2canvas(document.body, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: null,
+            scrollY: 0,
+            windowWidth: document.documentElement.scrollWidth,
+            windowHeight: document.documentElement.scrollHeight,
+            width: document.documentElement.scrollWidth,
+            height: document.documentElement.scrollHeight,
+        }).then(canvas => {
+            const date = new Date().toISOString().slice(0,10);
+            const link = document.createElement('a');
+            link.download = 'project_analytics_' + date + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            window.scrollTo(0, scrollY);
+            btn.innerHTML = orig;
+            btn.disabled = false;
+        }).catch(() => {
+            window.scrollTo(0, scrollY);
+            btn.innerHTML = orig;
+            btn.disabled = false;
+            alert('Screenshot failed. Please try again.');
+        });
+    }, 300);
+}
+</script>
+
 </body>
 </html>
