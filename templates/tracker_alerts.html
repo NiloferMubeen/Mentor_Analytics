@@ -120,6 +120,7 @@
         <a href="/sessions"       class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🗓️ Sessions</a>
         <a href="/tracker"        class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">📌 Tracker</a>
         <a href="/tracker-alerts" class="px-4 py-2 rounded-lg nav-active">🚨 Alerts</a>
+        <a href="/reports"        class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">📝 Reports</a>
     </div>
 </nav>
 
@@ -137,8 +138,7 @@
                 🚨 Alert Dashboard
             </h1>
             <p class="text-gray-500 text-sm mt-1">
-                Deadline & out-of-order alerts · Emails sent automatically every 24 h ·
-                <span class="text-amber-400">Configure SMTP + emails in app.py</span>
+                Deadline & out-of-order alerts · Emails sent automatically every 24 h
             </p>
         </div>
         <a href="/tracker" class="px-5 py-2.5 rounded-xl font-semibold text-sm text-amber-300 border border-amber-700/50 hover:bg-amber-900/20 transition">
@@ -172,22 +172,6 @@
             <div class="text-2xl mb-2">❌</div>
             <div class="big-num text-slate-300">{{ log_failed }}</div>
             <div class="text-xs uppercase tracking-widest text-slate-400 mt-2 font-semibold">Send Failures</div>
-        </div>
-    </div>
-
-    <!-- EMAIL CONFIG REMINDER -->
-    <div class="glass-amber px-5 py-4 mb-8 flex items-start gap-4">
-        <span class="text-2xl mt-0.5">⚙️</span>
-        <div>
-            <div class="font-bold text-amber-300 text-sm font-display mb-1">Email Configuration Required</div>
-            <div class="text-xs text-gray-400 leading-relaxed">
-                Open <code class="bg-black/40 px-1.5 py-0.5 rounded text-amber-300">app.py</code> and fill in:
-                <span class="text-white font-semibold">SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD</span> for your mail server,
-                <span class="text-white font-semibold">MENTOR_EMAILS</span> dict with each mentor's email address, and
-                <span class="text-white font-semibold">MANAGER_EMAIL</span> for the reporting manager.
-                Alerts run automatically every <strong class="text-amber-300">24 hours</strong> via APScheduler
-                (install with <code class="bg-black/40 px-1.5 py-0.5 rounded text-amber-300">pip install apscheduler</code>).
-            </div>
         </div>
     </div>
 

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mentor Reports – MentorHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet"/>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
+        body {
+            background: linear-gradient(135deg,#0a0005 0%,#150008 25%,#200010 50%,#120006 75%,#060002 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+        h1,h2,.font-display { font-family: 'Syne', sans-serif; }
+
+        .glass {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(236,72,153,0.2);
+            backdrop-filter: blur(18px);
+            border-radius: 20px;
+        }
+        .glass-card {
+            background: rgba(236,72,153,0.05);
+            border: 1px solid rgba(236,72,153,0.22);
+            backdrop-filter: blur(12px);
+            border-radius: 18px;
+            transition: box-shadow .3s, transform .3s;
+        }
+        .glass-card:hover {
+            box-shadow: 0 0 35px rgba(236,72,153,0.22);
+            transform: translateY(-2px);
+        }
+
+        .kpi-pill {
+            display: inline-flex; flex-direction: column; align-items: center;
+            padding: .8rem 1.2rem; border-radius: 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            min-width: 90px;
+        }
+        .kpi-num { font-size: 1.6rem; font-weight: 900; line-height: 1; font-family: 'Syne', sans-serif; }
+        .kpi-label { font-size: .62rem; text-transform: uppercase; letter-spacing: .08em; margin-top: .3rem; color: #6b7280; font-weight: 700; }
+
+        .section-tag {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 3px 12px; border-radius: 999px;
+            font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+        }
+
+        .point-row {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: .55rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-size: .875rem; color: #d1d5db;
+        }
+        .point-row:last-child { border-bottom: none; }
+        .point-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+        .fsel {
+            background: rgba(80,10,30,0.45); border: 1px solid rgba(236,72,153,0.45);
+            color: #fce7f3; border-radius: 12px; padding: .55rem 1rem;
+            font-size: .875rem; outline: none; cursor: pointer;
+        }
+        .fsel:focus { border-color: #ec4899; box-shadow: 0 0 0 3px rgba(236,72,153,0.2); }
+        .fsel option { background: #1a0010; }
+
+        .date-input {
+            background: rgba(80,10,30,0.3); border: 1px solid rgba(236,72,153,0.38);
+            color: #fce7f3; border-radius: 12px; padding: .55rem 1rem;
+            font-size: .875rem; outline: none;
+        }
+        .date-input:focus { border-color: #ec4899; box-shadow: 0 0 0 3px rgba(236,72,153,0.2); }
+        .date-input::-webkit-calendar-picker-indicator { filter: invert(1) opacity(.5); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #be185d, #ec4899);
+            color: white; font-weight: 700; border-radius: 12px;
+            padding: .6rem 1.6rem; font-size: .875rem;
+            border: none; cursor: pointer; transition: opacity .2s;
+        }
+        .btn-primary:hover { opacity: .85; }
+
+        .btn-ghost {
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+            color: #9ca3af; font-weight: 600; border-radius: 12px;
+            padding: .6rem 1.2rem; font-size: .875rem;
+            cursor: pointer; transition: all .2s;
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,0.07); color: #e5e7eb; }
+
+        .nav-active { background: rgba(236,72,153,0.2); border: 1px solid rgba(236,72,153,0.55); color: #fbcfe8; }
+
+        .badge-neon {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 14px; border-radius: 999px;
+            font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+        }
+        .pulse-dot { animation: pdot 1.4s ease-in-out infinite; }
+        @keyframes pdot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+
+        .section-divider {
+            display: flex; align-items: center; gap: 12px; margin: 1rem 0 .75rem;
+        }
+        .section-divider::after {
+            content: ''; flex: 1; height: 1px;
+            background: linear-gradient(90deg, rgba(236,72,153,0.3), transparent);
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: rgba(236,72,153,0.4); border-radius: 5px; }
+
+        @media print {
+            nav, .no-print { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .glass-card { border: 1px solid #e5e7eb !important; background: white !important; }
+        }
+    </style>
+</head>
+<body class="text-white">
+
+<!-- NAV -->
+<nav class="sticky top-0 z-50 bg-black/80 backdrop-blur-lg border-b border-pink-900/30 px-6 py-3 flex items-center justify-between">
+    <a href="/">
+        <img src="/static/logo.webp" alt="MentorHub" class="h-9 w-auto"
+             onerror="this.outerHTML='<span style=\'background:linear-gradient(135deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.1rem;font-weight:800;\'>✦ MentorHub</span>'" />
+    </a>
+    <div class="flex gap-2 text-sm flex-wrap justify-end">
+        <a href="/"               class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🏠 Home</a>
+        <a href="/queries"        class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">📊 Queries</a>
+        <a href="/projects"       class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🎯 Projects</a>
+        <a href="/sessions"       class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🗓️ Sessions</a>
+        <a href="/tracker"        class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">📌 Tracker</a>
+        <a href="/tracker-alerts" class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition">🚨 Alerts</a>
+        <a href="/reports"        class="px-4 py-2 rounded-lg nav-active">📝 Reports</a>
+    </div>
+</nav>
+
+<div class="px-6 py-8 max-w-screen-xl mx-auto">
+
+    <!-- PAGE HEADER -->
+    <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
+        <div>
+            <div class="badge-neon mb-3" style="background:rgba(236,72,153,0.12);border:1px solid rgba(236,72,153,0.4);color:#fbcfe8;">
+                <span class="pulse-dot w-2 h-2 rounded-full bg-pink-400 inline-block"></span>
+                Consolidated Mentor Reports
+            </div>
+            <h1 class="text-5xl font-display font-black mb-1"
+                style="background:linear-gradient(135deg,#f9a8d4,#ec4899,#be185d,#fb7185);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+                📝 Mentor Reports
+            </h1>
+            <p class="text-gray-500 text-sm mt-1">Queries · Doubt Sessions · Live Evaluations · Sessions · Tracker — all in one view</p>
+        </div>
+        <button onclick="window.print()" class="btn-ghost no-print">🖨️ Print / Save PDF</button>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="glass mb-8 px-6 py-5 no-print">
+        <form method="GET" action="/reports" class="flex flex-wrap items-end gap-4">
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-purple-400 font-bold uppercase tracking-widest">From Date</label>
+                <input type="date" name="date_from" value="{{ date_from }}" class="date-input" />
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-purple-400 font-bold uppercase tracking-widest">To Date</label>
+                <input type="date" name="date_to" value="{{ date_to }}" class="date-input" />
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-purple-400 font-bold uppercase tracking-widest">Mentor</label>
+                <select name="mentor" class="fsel">
+                    <option value="all" {% if mentor_filter == 'all' %}selected{% endif %}>All Mentors</option>
+                    {% for m in all_mentors %}
+                    <option value="{{ m }}" {% if mentor_filter == m %}selected{% endif %}>{{ m }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn-primary">🔍 Generate</button>
+            <a href="/reports" class="btn-ghost">✕ Reset</a>
+        </form>
+    </div>
+
+    <!-- DATE RANGE LABEL -->
+    {% if date_from or date_to %}
+    <div class="mb-6 flex items-center gap-3">
+        <span class="text-xs text-gray-500 uppercase tracking-widest font-bold">Showing report for</span>
+        <span class="section-tag" style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.4);color:#fbcfe8;">
+            📅 {{ date_from or '—' }} → {{ date_to or 'today' }}
+        </span>
+        {% if mentor_filter != 'all' %}
+        <span class="section-tag" style="background:rgba(251,113,133,0.12);border:1px solid rgba(251,113,133,0.35);color:#fda4af;">
+            👤 {{ mentor_filter }}
+        </span>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- NO DATA STATE -->
+    {% if not reports %}
+    <div class="glass flex flex-col items-center justify-center py-20 text-center">
+        <div class="text-6xl mb-4">📭</div>
+        <div class="text-xl font-bold text-purple-300 mb-2">No data found for this range</div>
+        <div class="text-sm text-gray-500">Try selecting a different date range or mentor above</div>
+    </div>
+    {% endif %}
+
+    <!-- REPORT CARDS -->
+    {% for r in reports %}
+    <div class="glass-card mb-8 p-6">
+
+        <!-- Mentor Header -->
+        <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl font-black"
+                     style="background:linear-gradient(135deg,rgba(190,24,93,0.5),rgba(236,72,153,0.35));border:1px solid rgba(236,72,153,0.45);">
+                    {{ r.mentor[0].upper() }}
+                </div>
+                <div>
+                    <div class="text-xl font-display font-black text-white">{{ r.mentor }}</div>
+                    <div class="text-xs text-gray-500 mt-0.5">
+                        {% if date_from or date_to %}{{ date_from or '—' }} → {{ date_to or 'today' }}{% else %}All time{% endif %}
+                    </div>
+                </div>
+            </div>
+            <!-- Quick KPI pills -->
+            <div class="flex flex-wrap gap-2">
+                <div class="kpi-pill">
+                    <span class="kpi-num text-pink-300">{{ r.total_queries }}</span>
+                    <span class="kpi-label">Queries</span>
+                </div>
+                <div class="kpi-pill">
+                    <span class="kpi-num text-rose-300">{{ r.doubt_sessions }}</span>
+                    <span class="kpi-label">Doubt Sess.</span>
+                </div>
+                <div class="kpi-pill">
+                    <span class="kpi-num text-fuchsia-300">{{ r.live_evals }}</span>
+                    <span class="kpi-label">Live Evals</span>
+                </div>
+                <div class="kpi-pill">
+                    <span class="kpi-num text-teal-300">{{ r.sessions_count }}</span>
+                    <span class="kpi-label">Sessions</span>
+                </div>
+                <div class="kpi-pill">
+                    <span class="kpi-num text-amber-300">{{ r.batches_assigned }}</span>
+                    <span class="kpi-label">Batches</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- LEFT COLUMN -->
+            <div>
+                <!-- Queries -->
+                {% if r.total_queries > 0 %}
+                <div class="section-divider">
+                    <span class="section-tag" style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.4);color:#fbcfe8;">📊 Queries</span>
+                </div>
+                <div class="point-row">
+                    <span class="point-icon">🔢</span>
+                    <span>Handled <strong class="text-white">{{ r.total_queries }}</strong> queries in this period</span>
+                </div>
+                <div class="point-row">
+                    <span class="point-icon">✅</span>
+                    <span><strong class="text-green-400">{{ r.closed_queries }}</strong> resolved · <strong class="text-red-400">{{ r.open_queries }}</strong> still open · <strong class="text-pink-300">{{ r.close_rate }}%</strong> close rate</span>
+                </div>
+                {% if r.avg_time > 0 %}
+                <div class="point-row">
+                    <span class="point-icon">⏱️</span>
+                    <span>Average resolution time: <strong class="text-amber-300">
+                        {% if r.avg_time >= 1440 %}
+                            {{ (r.avg_time // 1440) }}d {{ ((r.avg_time % 1440) // 60) }}h {{ (r.avg_time % 60) }}m
+                        {% elif r.avg_time >= 60 %}
+                            {{ r.avg_time // 60 }}h {{ r.avg_time % 60 }}m
+                        {% else %}
+                            {{ r.avg_time }} min
+                        {% endif %}
+                    </strong></span>
+                </div>
+                {% endif %}
+                {% endif %}
+
+                <!-- Doubt Sessions -->
+                {% if r.doubt_sessions > 0 %}
+                <div class="section-divider mt-4">
+                    <span class="section-tag" style="background:rgba(251,113,133,0.12);border:1px solid rgba(251,113,133,0.35);color:#fda4af;">🎯 Doubt Sessions</span>
+                </div>
+                <div class="point-row">
+                    <span class="point-icon">📚</span>
+                    <span>Conducted <strong class="text-white">{{ r.doubt_sessions }}</strong> project doubt session{{ 's' if r.doubt_sessions != 1 }}</span>
+                </div>
+                <div class="point-row">
+                    <span class="point-icon">👥</span>
+                    <span><strong class="text-pink-300">{{ r.doubt_learners }}</strong> learners attended across all doubt sessions</span>
+                </div>
+                {% if r.doubt_sessions > 0 %}
+                <div class="point-row">
+                    <span class="point-icon">📈</span>
+                    <span>Average of <strong class="text-pink-300">{{ (r.doubt_learners / r.doubt_sessions) | round(1) }}</strong> learners per session</span>
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div>
+                <!-- Live Evaluations -->
+                {% if r.live_evals > 0 %}
+                <div class="section-divider">
+                    <span class="section-tag" style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.35);color:#c7d2fe;">📋 Live Evaluations</span>
+                </div>
+                <div class="point-row">
+                    <span class="point-icon">🖥️</span>
+                    <span>Evaluated <strong class="text-white">{{ r.live_evals }}</strong> project{{ 's' if r.live_evals != 1 }} via Live Evaluation</span>
+                </div>
+                {% if r.zen_breakdown %}
+                {% for status, count in r.zen_breakdown.items() %}
+                <div class="point-row">
+                    <span class="point-icon">·</span>
+                    <span><strong class="text-indigo-300">{{ count }}</strong> marked as <span class="text-gray-300">{{ status }}</span> on Zen portal</span>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endif %}
+
+                <!-- Sessions -->
+                {% if r.sessions_count > 0 %}
+                <div class="section-divider mt-4">
+                    <span class="section-tag" style="background:rgba(20,184,166,0.12);border:1px solid rgba(20,184,166,0.3);color:#99f6e4;">🗓️ Sessions</span>
+                </div>
+                <div class="point-row">
+                    <span class="point-icon">🎙️</span>
+                    <span>Delivered <strong class="text-white">{{ r.sessions_count }}</strong> session{{ 's' if r.sessions_count != 1 }}</span>
+                </div>
+                {% if r.session_types %}
+                {% for stype, count in r.session_types.items() %}
+                <div class="point-row">
+                    <span class="point-icon">·</span>
+                    <span><strong class="text-teal-300">{{ count }}×</strong> <span class="text-gray-300">{{ stype }}</span></span>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                <!-- Tracker -->
+                {% if r.batches_assigned > 0 %}
+                <div class="section-divider mt-4">
+                    <span class="section-tag" style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:#fde68a;">📌 Tracker</span>
+                </div>
+                <div class="point-row">
+                    <span class="point-icon">📦</span>
+                    <span>Managing <strong class="text-white">{{ r.batches_assigned }}</strong> batch{{ 'es' if r.batches_assigned != 1 }} with <strong class="text-amber-300">{{ r.projects_assigned }}</strong> project{{ 's' if r.projects_assigned != 1 }} assigned</span>
+                </div>
+                {% if r.project_titles %}
+                <div class="point-row">
+                    <span class="point-icon">🗂️</span>
+                    <span class="text-gray-400 text-xs">{{ r.project_titles | join(' · ') }}</span>
+                </div>
+                {% endif %}
+                {% endif %}
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+</body>
+</html>
