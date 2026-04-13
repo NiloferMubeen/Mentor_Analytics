@@ -109,11 +109,7 @@
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: rgba(236,72,153,0.4); border-radius: 5px; }
 
-        @media print {
-            nav, .no-print { display: none !important; }
-            body { background: white !important; color: black !important; }
-            .glass-card { border: 1px solid #e5e7eb !important; background: white !important; }
-        }
+
     </style>
 </head>
 <body class="text-white">
@@ -150,7 +146,10 @@
             </h1>
             <p class="text-gray-500 text-sm mt-1">Queries · Doubt Sessions · Live Evaluations · Sessions · Tracker — all in one view</p>
         </div>
-        <button onclick="window.print()" class="btn-ghost no-print">🖨️ Print / Save PDF</button>
+        <div class="flex gap-2 no-print">
+            <button onclick="downloadTxt()" class="btn-ghost">📄 Download TXT</button>
+            <button onclick="downloadPdf()" class="btn-ghost">📥 Download PDF</button>
+        </div>
     </div>
 
     <!-- FILTER BAR -->
@@ -227,8 +226,8 @@
                     <span class="kpi-label">Queries</span>
                 </div>
                 <div class="kpi-pill">
-                    <span class="kpi-num text-rose-300">{{ r.doubt_sessions }}</span>
-                    <span class="kpi-label">Doubt Sess.</span>
+                    <span class="kpi-num text-rose-300">{{ r.doubt_learners }}</span>
+                    <span class="kpi-label">Learners</span>
                 </div>
                 <div class="kpi-pill">
                     <span class="kpi-num text-fuchsia-300">{{ r.live_evals }}</span>
@@ -238,10 +237,7 @@
                     <span class="kpi-num text-teal-300">{{ r.sessions_count }}</span>
                     <span class="kpi-label">Sessions</span>
                 </div>
-                <div class="kpi-pill">
-                    <span class="kpi-num text-amber-300">{{ r.batches_assigned }}</span>
-                    <span class="kpi-label">Batches</span>
-                </div>
+
             </div>
         </div>
 
@@ -279,24 +275,14 @@
                 {% endif %}
 
                 <!-- Doubt Sessions -->
-                {% if r.doubt_sessions > 0 %}
+                {% if r.doubt_learners > 0 %}
                 <div class="section-divider mt-4">
-                    <span class="section-tag" style="background:rgba(251,113,133,0.12);border:1px solid rgba(251,113,133,0.35);color:#fda4af;">🎯 Doubt Sessions</span>
-                </div>
-                <div class="point-row">
-                    <span class="point-icon">📚</span>
-                    <span>Conducted <strong class="text-white">{{ r.doubt_sessions }}</strong> project doubt session{{ 's' if r.doubt_sessions != 1 }}</span>
+                    <span class="section-tag" style="background:rgba(251,113,133,0.12);border:1px solid rgba(251,113,133,0.35);color:#fda4af;">🎯 Project Doubt Sessions</span>
                 </div>
                 <div class="point-row">
                     <span class="point-icon">👥</span>
-                    <span><strong class="text-pink-300">{{ r.doubt_learners }}</strong> learners attended across all doubt sessions</span>
+                    <span><strong class="text-pink-300">{{ r.doubt_learners }}</strong> learners attended project doubt sessions in this period</span>
                 </div>
-                {% if r.doubt_sessions > 0 %}
-                <div class="point-row">
-                    <span class="point-icon">📈</span>
-                    <span>Average of <strong class="text-pink-300">{{ (r.doubt_learners / r.doubt_sessions) | round(1) }}</strong> learners per session</span>
-                </div>
-                {% endif %}
                 {% endif %}
             </div>
 
@@ -311,14 +297,6 @@
                     <span class="point-icon">🖥️</span>
                     <span>Evaluated <strong class="text-white">{{ r.live_evals }}</strong> project{{ 's' if r.live_evals != 1 }} via Live Evaluation</span>
                 </div>
-                {% if r.zen_breakdown %}
-                {% for status, count in r.zen_breakdown.items() %}
-                <div class="point-row">
-                    <span class="point-icon">·</span>
-                    <span><strong class="text-indigo-300">{{ count }}</strong> marked as <span class="text-gray-300">{{ status }}</span> on Zen portal</span>
-                </div>
-                {% endfor %}
-                {% endif %}
                 {% endif %}
 
                 <!-- Sessions -->
@@ -340,20 +318,14 @@
                 {% endif %}
 
                 <!-- Tracker -->
-                {% if r.batches_assigned > 0 %}
+                {% if r.projects_assigned > 0 %}
                 <div class="section-divider mt-4">
-                    <span class="section-tag" style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:#fde68a;">📌 Tracker</span>
+                    <span class="section-tag" style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:#fde68a;">📌 Projects Assigned</span>
                 </div>
                 <div class="point-row">
                     <span class="point-icon">📦</span>
-                    <span>Managing <strong class="text-white">{{ r.batches_assigned }}</strong> batch{{ 'es' if r.batches_assigned != 1 }} with <strong class="text-amber-300">{{ r.projects_assigned }}</strong> project{{ 's' if r.projects_assigned != 1 }} assigned</span>
+                    <span>Assigned <strong class="text-amber-300">{{ r.projects_assigned }}</strong> project{{ 's' if r.projects_assigned != 1 }} in this period</span>
                 </div>
-                {% if r.project_titles %}
-                <div class="point-row">
-                    <span class="point-icon">🗂️</span>
-                    <span class="text-gray-400 text-xs">{{ r.project_titles | join(' · ') }}</span>
-                </div>
-                {% endif %}
                 {% endif %}
                 {% endif %}
 
@@ -365,5 +337,108 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const reportData = {{ reports | tojson }};
+const dateFrom   = "{{ date_from }}";
+const dateTo     = "{{ date_to }}";
+
+function formatTime(mins) {
+    if (!mins || mins === 0) return '—';
+    if (mins >= 1440) return `${Math.floor(mins/1440)}d ${Math.floor((mins%1440)/60)}h ${mins%60}m`;
+    if (mins >= 60)   return `${Math.floor(mins/60)}h ${mins%60}m`;
+    return `${mins} min`;
+}
+
+function buildTxtLines() {
+    const period = dateFrom && dateTo ? `${dateFrom} to ${dateTo}` : dateFrom || dateTo || 'All time';
+    const lines = [];
+    lines.push('='.repeat(60));
+    lines.push('MENTORHUB — MENTOR REPORT');
+    lines.push(`Period : ${period}`);
+    lines.push(`Generated : ${new Date().toLocaleString()}`);
+    lines.push('='.repeat(60));
+
+    reportData.forEach(r => {
+        lines.push('');
+        lines.push(`MENTOR: ${r.mentor}`);
+        lines.push('-'.repeat(40));
+
+        if (r.total_queries > 0) {
+            lines.push(`Queries`);
+            lines.push(`  • Total Queries    : ${r.total_queries}`);
+            lines.push(`  • Resolved         : ${r.closed_queries} (${r.close_rate}% close rate)`);
+            lines.push(`  • Open             : ${r.open_queries}`);
+            if (r.avg_time > 0) lines.push(`  • Avg Resolution   : ${formatTime(r.avg_time)}`);
+        }
+        if (r.doubt_learners > 0) {
+            lines.push(`Project Doubt Sessions`);
+            lines.push(`  • Learners Attended: ${r.doubt_learners}`);
+        }
+        if (r.live_evals > 0) {
+            lines.push(`Live Evaluations`);
+            lines.push(`  • Projects Evaluated: ${r.live_evals}`);
+        }
+        if (r.sessions_count > 0) {
+            lines.push(`Sessions`);
+            lines.push(`  • Sessions Delivered: ${r.sessions_count}`);
+            Object.entries(r.session_types || {}).forEach(([t, n]) => {
+                lines.push(`    - ${n}x ${t}`);
+            });
+        }
+        if (r.projects_assigned > 0) {
+            lines.push(`Projects Assigned`);
+            lines.push(`  • Projects Assigned : ${r.projects_assigned}`);
+        }
+        lines.push('-'.repeat(40));
+    });
+
+    lines.push('');
+    lines.push('='.repeat(60));
+    lines.push('End of Report — MentorHub');
+    lines.push('='.repeat(60));
+    return lines.join('
+');
+}
+
+function downloadTxt() {
+    const txt  = buildTxtLines();
+    const blob = new Blob([txt], { type: 'text/plain' });
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(blob);
+    a.download = `mentor_report_${dateFrom || 'all'}_${dateTo || 'all'}.txt`;
+    a.click();
+}
+
+function downloadPdf() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const lines = buildTxtLines().split('
+');
+    const margin = 15, lineH = 5.5;
+    let y = margin;
+
+    doc.setFont('courier', 'normal');
+    doc.setFontSize(9);
+
+    lines.forEach(line => {
+        if (y > 280) {
+            doc.addPage();
+            y = margin;
+        }
+        // Bold for MENTOR: lines and headers
+        if (line.startsWith('MENTOR:') || line.startsWith('===') || line.startsWith('MENTORHU')) {
+            doc.setFont('courier', 'bold');
+        } else {
+            doc.setFont('courier', 'normal');
+        }
+        doc.text(line, margin, y);
+        y += lineH;
+    });
+
+    const period = dateFrom && dateTo ? `${dateFrom}_${dateTo}` : 'all';
+    doc.save(`mentor_report_${period}.pdf`);
+}
+</script>
 </body>
 </html>
