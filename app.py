@@ -301,9 +301,9 @@ MENTOR_EMAILS = {
 
 SMTP_HOST     = "smtp.gmail.com"
 SMTP_PORT     = 587
-SMTP_USER     = "nilofer.mubeen@hclguvi.com"
-SMTP_PASSWORD = os.environ["SMTP_PASSWORD"]
-SMTP_FROM     = "nilofer.mubeen@hclguvi.com"
+SMTP_USER     = os.environ.get("SMTP_USER", "nilofer.mubeen@hclguvi.com")
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")
+SMTP_FROM     = os.environ.get("SMTP_USER", "nilofer.mubeen@hclguvi.com")
 
 
 # ── email helper ──
@@ -782,6 +782,141 @@ def tracker_alerts():
     ctx = build_tracker_ctx(df)
     ctx["alert_log"] = list(reversed(_alert_log))   # newest first
     return render_template("tracker_alerts.html", **ctx)
+
+
+def build_report_ctx(date_from=None, date_to=None, mentor_filter=None):
+    """Build consolidated per-mentor report for a given date range."""
+    # ── Load all sheets ──
+    queries_df   = load_df()
+    doubt_df     = load_doubt_df()
+    liveeval_df  = load_liveeval_df()
+    sessions_df  = load_sessions_df()
+    tracker_df   = load_tracker_df()
+
+    # ── Normalise dates for filtering ──
+    def to_date_str(df, col):
+        df[col] = pd.to_datetime(df[col], errors='coerce').dt.strftime('%Y-%m-%d')
+        return df
+
+    queries_df  = to_date_str(queries_df,  'Date')
+    doubt_df    = to_date_str(doubt_df,    'Date')
+    liveeval_df = to_date_str(liveeval_df, 'Date')
+    sessions_df = to_date_str(sessions_df, 'Date')
+
+    tracker_df['Assigned Date'] = pd.to_datetime(
+        tracker_df['Assigned Date'], errors='coerce').dt.strftime('%Y-%m-%d')
+
+    # ── Apply date filter ──
+    def date_filter(df, col):
+        if date_from:
+            df = df[df[col] >= date_from]
+        if date_to:
+            df = df[df[col] <= date_to]
+        return df
+
+    queries_df   = date_filter(queries_df,   'Date')
+    doubt_df     = date_filter(doubt_df,     'Date')
+    liveeval_df  = date_filter(liveeval_df,  'Date')
+    sessions_df  = date_filter(sessions_df,  'Date')
+    tracker_df   = date_filter(tracker_df,   'Assigned Date')
+
+    # ── All mentor names across all sheets ──
+    all_mentors = sorted(set(
+        queries_df['Mentor'].dropna().unique().tolist() +
+        doubt_df['Mentor'].dropna().unique().tolist() +
+        liveeval_df['Mentor'].dropna().unique().tolist() +
+        sessions_df['Mentor Name'].dropna().unique().tolist() +
+        tracker_df['Mentor'].dropna().unique().tolist()
+    ))
+    all_mentors = [m for m in all_mentors if m.strip()]
+
+    # ── Filter to selected mentor if provided ──
+    if mentor_filter and mentor_filter != 'all':
+        mentor_list = [mentor_filter]
+    else:
+        mentor_list = all_mentors
+
+    # ── Build per-mentor report ──
+    reports = []
+    for mentor in mentor_list:
+        # Queries
+        mq = queries_df[queries_df['Mentor'] == mentor]
+        total_queries  = len(mq)
+        closed_queries = len(mq[mq['Status'].str.lower() == 'closed'])
+        open_queries   = total_queries - closed_queries
+        avg_time       = int(mq['time_minutes'].dropna().mean()) if mq['time_minutes'].notna().any() else 0
+        close_rate     = round(closed_queries / total_queries * 100, 1) if total_queries > 0 else 0
+
+        # Doubt sessions
+        md = doubt_df[doubt_df['Mentor'] == mentor]
+        doubt_sessions  = len(md)
+        doubt_learners  = int(md['Count'].sum())
+
+        # Live evaluations
+        ml = liveeval_df[liveeval_df['Mentor'] == mentor]
+        live_evals      = len(ml)
+        zen_breakdown   = ml['Zen portal'].value_counts().to_dict() if not ml.empty else {}
+
+        # Sessions
+        ms = sessions_df[sessions_df['Mentor Name'] == mentor]
+        sessions_count  = len(ms)
+        session_types   = ms['Session Name'].value_counts().to_dict() if not ms.empty else {}
+
+        # Tracker — batches & projects assigned
+        mt = tracker_df[tracker_df['Mentor'] == mentor]
+        batches_assigned  = mt['Batch'].nunique() if not mt.empty else 0
+        projects_assigned = len(mt[mt['Assigned Date'].notna() & (mt['Assigned Date'] != '')]) if not mt.empty else 0
+        project_titles    = mt['Project Title'].dropna().unique().tolist() if not mt.empty else []
+        project_titles    = [p for p in project_titles if p.strip()]
+
+        # Skip mentor if no data at all in this range
+        if total_queries == 0 and doubt_sessions == 0 and live_evals == 0 and sessions_count == 0 and batches_assigned == 0:
+            continue
+
+        reports.append({
+            'mentor':           mentor,
+            # queries
+            'total_queries':    total_queries,
+            'closed_queries':   closed_queries,
+            'open_queries':     open_queries,
+            'close_rate':       close_rate,
+            'avg_time':         avg_time,
+            # doubt
+            'doubt_sessions':   doubt_sessions,
+            'doubt_learners':   doubt_learners,
+            # live eval
+            'live_evals':       live_evals,
+            'zen_breakdown':    zen_breakdown,
+            # sessions
+            'sessions_count':   sessions_count,
+            'session_types':    session_types,
+            # tracker
+            'batches_assigned': batches_assigned,
+            'projects_assigned':projects_assigned,
+            'project_titles':   project_titles,
+        })
+
+    return dict(
+        reports       = reports,
+        all_mentors   = all_mentors,
+        date_from     = date_from or '',
+        date_to       = date_to   or '',
+        mentor_filter = mentor_filter or 'all',
+    )
+
+
+@app.route("/reports")
+def reports():
+    from flask import request
+    date_from     = request.args.get('date_from', '')
+    date_to       = request.args.get('date_to',   '')
+    mentor_filter = request.args.get('mentor',    'all')
+    ctx = build_report_ctx(
+        date_from     = date_from     or None,
+        date_to       = date_to       or None,
+        mentor_filter = mentor_filter or None,
+    )
+    return render_template("reports.html", **ctx)
 
 
 @app.route("/test-email")
