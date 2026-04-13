@@ -20,7 +20,7 @@ TRACKER_SHEET_ID  = "1igZAYA3wT7Yt_oFdkbA459KMAEqa4jJ8J3QC_KOplis"
 # ── helper: authenticate once, reuse ──
 def get_client():
     creds_dict = json.loads(os.environ["GOOGLE_CREDS"])
-    SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+    SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
     creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
     return gspread.authorize(creds)
 
@@ -38,7 +38,9 @@ def load_df():
     df = df.fillna("")
     df = df[['Date', 'Query No', 'Mentor', 'Status', 'Product',
              'Batch Code', 'Query Type', 'Mail Id', 'Time Taken']]
-    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+    # Handle dates like "01/04/2026 - (Wednesday)" — extract dd/mm/yyyy part first
+    df['Date'] = df['Date'].astype(str).str.extract(r'(\d{2}/\d{2}/\d{4})')[0]
+    df['Date'] = pd.to_datetime(df['Date'], dayfirst=True, errors='coerce')
     df['Date'] = df['Date'].dt.strftime('%Y-%m-%d')
 
     def convert_time(text):
@@ -96,7 +98,8 @@ def load_liveeval_df():
         df = df.fillna("")
         # Keep only Date, Zen portal, Mentor (as seen in Image 2)
         df = df[['Date', 'Zen portal', 'Mentor']]
-        df['Date'] = pd.to_datetime(df['Date'], errors='coerce').dt.strftime('%Y-%m-%d')
+        df['Date'] = df['Date'].str.extract(r'(\d{2}/\d{2}/\d{4})')[0]
+        df['Date'] = pd.to_datetime(df['Date'], dayfirst=True, errors='coerce').dt.strftime('%Y-%m-%d')
         return df
     except Exception as e:
         print(f"Live eval sheet load error: {e}")
@@ -122,7 +125,7 @@ def build_context(df):
     status_labels = list(status_counts.keys())
     status_values = [int(x) for x in status_counts.values()]
 
-    unique_dates  = sorted(df['Date'].astype(str).unique())
+    unique_dates  = sorted([d for d in df['Date'].dropna().astype(str).unique() if d and d not in ('NaT', 'nan', '')])
     data_records  = df.to_dict(orient='records')
     mentors       = df['Mentor'].dropna().unique().tolist()
 
