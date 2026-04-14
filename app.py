@@ -767,7 +767,7 @@ try:
     _scheduler.add_job(
         run_tracker_alerts,
         "cron",
-        hour=2, minute=30,       # 2:30 AM UTC = 8:00 AM IST
+        hour=13, minute=30,       
         id="tracker_alerts",
         misfire_grace_time=3600  # if server was down at scheduled time, run within 1hr window
     )
