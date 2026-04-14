@@ -626,10 +626,7 @@ def _append_alert_log_row(entry, dedup_key_str):
         print(f"[ALERT LOG] Could not append to AlertLog sheet: {e}")
 
 def run_tracker_alerts(from_cron=False):
-    """Called by external cron (via /run-alerts?cron=true) every day at 8 AM IST.
-    Each unique alert (date + type + batch + project) is sent ONLY ONCE,
-    even across server restarts. Daily gate applies only to cron calls,
-    so manual hits via /run-alerts still work freely for testing."""
+    
     global _alert_log, _last_alert_run_date
     if from_cron:
         today_str = datetime.now().strftime("%Y-%m-%d")
@@ -922,40 +919,25 @@ def test_email():
 
 @app.route("/run-alerts")
 def manual_run_alerts():
-    """Manually trigger alert check — shows result in browser.
-    Add ?cron=true in the URL (used by cron-job.org) to enable the daily gate.
-    The alert logic runs in a background thread to avoid Gunicorn worker timeout."""
+    """Trigger alert check (cron-safe).
+    Use ?cron=true for cron jobs.
+    Runs in background and returns immediately."""
+    
     from flask import request
     import threading
+
     from_cron = request.args.get("cron", "").lower() == "true"
 
-    result = {"log": "", "done": False, "error": ""}
-
     def run_in_bg():
-        import io, sys
-        buf = io.StringIO()
-        old = sys.stdout
-        sys.stdout = buf
         try:
             run_tracker_alerts(from_cron=from_cron)
         except Exception as e:
-            print(f"ERROR: {e}")
-        finally:
-            sys.stdout = old
-        result["log"]  = buf.getvalue()
-        result["done"] = True
+            print(f"[ALERT ERROR] {e}")
 
     t = threading.Thread(target=run_in_bg, daemon=True)
     t.start()
-    # Return immediately — do NOT join/wait. Gunicorn worker is freed right away.
-    # Full output will appear in Render logs.
-    return (
-        "<pre style='font-family:monospace;padding:20px;white-space:pre-wrap'>"
-        "⏳ Alert check triggered and running in background.\n\n"
-        "Check your Render logs for real-time output.\n"
-        "You can also visit /tracker-alerts to see the alert log."
-        "</pre>"
-    )
+    
+    return "OK", 200
 
 
 if __name__ == "__main__":
