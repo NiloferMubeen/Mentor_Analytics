@@ -764,7 +764,7 @@ try:
     _scheduler.add_job(
         run_tracker_alerts,
         "cron",
-        hour=13, minute=30,       
+        hour=20, minute=10,       
         id="tracker_alerts",
         misfire_grace_time=3600  # if server was down at scheduled time, run within 1hr window
     )
@@ -922,21 +922,31 @@ def manual_run_alerts():
     """Trigger alert check (cron-safe).
     Use ?cron=true for cron jobs.
     Runs in background and returns immediately."""
-    
+
     from flask import request
     import threading
+    import sys
+    import os
 
     from_cron = request.args.get("cron", "").lower() == "true"
 
     def run_in_bg():
         try:
+            # 🔥 CRITICAL FIX: suppress ALL output during cron
+            if from_cron:
+                sys.stdout = open(os.devnull, 'w')
+                sys.stderr = open(os.devnull, 'w')
+
             run_tracker_alerts(from_cron=from_cron)
-        except Exception as e:
-            print(f"[ALERT ERROR] {e}")
+
+        except Exception:
+            # do nothing (avoid printing errors in cron)
+            pass
 
     t = threading.Thread(target=run_in_bg, daemon=True)
     t.start()
-    
+
+    # 🔥 MUST BE SMALL RESPONSE
     return "OK", 200
 
 
