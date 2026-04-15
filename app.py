@@ -196,9 +196,9 @@ def home():
 
 
 REPORT_MENTORS = [
-    "Nandini", "Anitha", "Shagufta", "Nehlath", "Shadiya", "Asvin",
-    "Vinodhini", "Nilofer", "Subhash", "Kirti Gupta", "Vignesh",
-    "Selvamani", "Nikhat", "Gangatharam", "Lokesh",
+    "Nandini", "Anitha", "shagufta", "NEHLATH", "shadiya", "Asvin",
+    "Vinodhini", "Nilofer", "Subhash", "Kirti_Gupta", "Vignesh",
+    "Selvamani", "Nikhat_Riyaz", "Gangatharam", "lokesh",
 ]
 
 
