@@ -405,11 +405,11 @@ def sessions():
 # ════════════════════════════════════════════════════════════
 #TRACKER_SHEET_ID = "YOUR_TRACKER_SHEET_ID_HERE"
 
-MANAGER_EMAIL = "nilofer.mubeen@hclguvi.com"
+MANAGER_EMAIL = "nehlath@hclguvi.com"
 
 MENTOR_EMAILS = {
-    "Shadiya":   "shadiya@example.com",
-    "Nehlath":   "nehlath@example.com",
+    "shadiya":   "shadiya@example.com",
+    "NEHLATH":   "nehlath@hclguvi.com",
     "Gomathi":   "gomathi@example.com",
     "Nilofer":  "nilofer.mubeen@hclguvi.com",
     "Asvin":     "asvin@example.com",
