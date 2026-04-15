@@ -7,13 +7,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Syne:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
         body {
             background: linear-gradient(135deg,#04000e 0%,#080018 20%,#0e0028 45%,#060014 70%,#02000a 100%);
             min-height:100vh;
-            font-family:'Inter',sans-serif;
+            font-family:'Space Grotesk',sans-serif;
         }
-        h1,h2,.font-display { font-family:'Syne',sans-serif; }
+        h1,h2 { font-family:'Space Grotesk',sans-serif; }
 
         .glow-amber  { box-shadow:0 0 28px rgba(251,191,36,0.4),0 0 55px rgba(251,191,36,0.12); }
         .glow-orange { box-shadow:0 0 28px rgba(249,115,22,0.4),0 0 55px rgba(249,115,22,0.12); }
@@ -44,7 +44,7 @@
             width:100px; height:100px; border-radius:50%;
             background:radial-gradient(circle,rgba(255,255,255,0.09),transparent 70%);
         }
-        .big-num { font-size:2.6rem; font-weight:900; line-height:1; letter-spacing:-0.03em; font-family:'Syne',sans-serif; }
+        .big-num { font-size:2.6rem; font-weight:900; line-height:1; letter-spacing:-0.03em; font-family:'Space Grotesk',sans-serif; }
 
         .chart-box { border-radius:20px; padding:1.5rem; transition:box-shadow .3s; }
         .chart-box:hover { box-shadow:0 0 40px rgba(251,191,36,0.1); }
@@ -52,13 +52,13 @@
             font-size:.75rem; font-weight:700; text-transform:uppercase;
             letter-spacing:.1em; margin-bottom:1rem;
             display:flex; align-items:center; gap:.5rem;
-            font-family:'Syne',sans-serif;
+            font-family:'Space Grotesk',sans-serif;
         }
 
         .fsel {
             background:rgba(120,53,15,0.35); border:1px solid rgba(251,191,36,0.35);
             color:#fde68a; border-radius:12px; padding:.5rem 1rem;
-            font-size:.85rem; outline:none; cursor:pointer; font-family:'Inter',sans-serif;
+            font-size:.85rem; outline:none; cursor:pointer; font-family:'Space Grotesk',sans-serif;
         }
         .fsel:focus { border-color:#fbbf24; box-shadow:0 0 0 3px rgba(251,191,36,0.18); }
         .fsel option { background:#1c0f00; }
@@ -67,7 +67,7 @@
             padding:.45rem 1.2rem; border-radius:10px; font-size:.8rem;
             font-weight:700; cursor:pointer; transition:all .2s;
             border:1px solid rgba(251,191,36,0.25); color:#92400e;
-            font-family:'Syne',sans-serif;
+            font-family:'Space Grotesk',sans-serif;
         }
         .tab-btn.active {
             background:rgba(251,191,36,0.2); border-color:#fbbf24; color:#fde68a;
@@ -138,7 +138,7 @@
                 <span class="pulse-dot w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
                 Live Tracker Data
             </div>
-            <h1 class="text-5xl font-display font-black mb-1 leading-tight"
+            <h1 class="text-5xl font-black mb-1 leading-tight"
                 style="background:linear-gradient(135deg,#fcd34d,#fbbf24,#f97316,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
                 📌 Project Tracker
             </h1>
@@ -210,7 +210,7 @@
 
     <!-- ══ SECTION 1: PROJECT TITLES ══ -->
     <div class="section-header">
-        <h2 class="text-lg font-display font-black text-amber-300 whitespace-nowrap">📋 Project Titles</h2>
+        <h2 class="text-lg font-black text-amber-300 whitespace-nowrap">📋 Project Titles</h2>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
@@ -228,7 +228,7 @@
 
     <!-- ══ SECTION 2: MENTOR WORKLOAD ══ -->
     <div class="section-header">
-        <h2 class="text-lg font-display font-black text-orange-300 whitespace-nowrap">👤 Mentor Workload</h2>
+        <h2 class="text-lg font-black text-orange-300 whitespace-nowrap">👤 Mentor Workload</h2>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
@@ -246,7 +246,7 @@
 
     <!-- ══ SECTION 3: MODE & ASSIGNED BY ══ -->
     <div class="section-header">
-        <h2 class="text-lg font-display font-black text-rose-300 whitespace-nowrap">📊 Distribution</h2>
+        <h2 class="text-lg font-black text-rose-300 whitespace-nowrap">📊 Distribution</h2>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
@@ -264,7 +264,7 @@
 
     <!-- ══ SECTION 4: BATCH COMPLETION ══ -->
     <div class="section-header">
-        <h2 class="text-lg font-display font-black text-amber-200 whitespace-nowrap">✅ Batch Completion</h2>
+        <h2 class="text-lg font-black text-amber-200 whitespace-nowrap">✅ Batch Completion</h2>
     </div>
 
     <div class="chart-box glass mb-10" style="border-color:rgba(251,191,36,0.25);">

@@ -7,12 +7,12 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Syne:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
         body {
             background:linear-gradient(135deg,#0a0000 0%,#1a0000 20%,#280505 45%,#180000 70%,#080000 100%);
-            min-height:100vh; font-family:'Inter',sans-serif;
+            min-height:100vh; font-family:'Space Grotesk',sans-serif;
         }
-        h1,h2,.font-display { font-family:'Syne',sans-serif; }
+        h1,h2 { font-family:'Space Grotesk',sans-serif; }
 
         .glow-red    { box-shadow:0 0 28px rgba(239,68,68,0.45),0 0 55px rgba(239,68,68,0.12); }
         .glow-amber  { box-shadow:0 0 28px rgba(251,191,36,0.4),0 0 55px rgba(251,191,36,0.12); }
@@ -39,7 +39,7 @@
             width:100px; height:100px; border-radius:50%;
             background:radial-gradient(circle,rgba(255,255,255,0.08),transparent 70%);
         }
-        .big-num { font-size:2.6rem; font-weight:900; line-height:1; letter-spacing:-.03em; font-family:'Syne',sans-serif; }
+        .big-num { font-size:2.6rem; font-weight:900; line-height:1; letter-spacing:-.03em; font-family:'Space Grotesk',sans-serif; }
 
         .alert-row {
             border-radius:14px; padding:1rem 1.2rem;
@@ -82,7 +82,7 @@
         }
 
         .chart-box { border-radius:20px; padding:1.5rem; }
-        .chart-title { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; margin-bottom:1rem; font-family:'Syne',sans-serif; } 100%{transform:translateX(-50%)} }
+        .chart-title { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; margin-bottom:1rem; font-family:'Space Grotesk',sans-serif; } 100%{transform:translateX(-50%)} }
 
         .nav-active { background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.5); color:#fca5a5; }
 
@@ -133,7 +133,7 @@
                 <span class="pulse-dot w-2 h-2 rounded-full bg-red-400 inline-block"></span>
                 Automated Alert System
             </div>
-            <h1 class="text-5xl font-display font-black mb-1"
+            <h1 class="text-5xl font-black mb-1"
                 style="background:linear-gradient(135deg,#fca5a5,#ef4444,#fbbf24,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
                 🚨 Alert Dashboard
             </h1>
@@ -177,7 +177,7 @@
 
     <!-- ══ SECTION 1: DEADLINE ALERTS ══ -->
     <div class="section-header">
-        <h2 class="text-lg font-display font-black text-red-300 whitespace-nowrap">🔴 Deadline Alerts — Today</h2>
+        <h2 class="text-lg font-black text-red-300 whitespace-nowrap">🔴 Deadline Alerts — Today</h2>
     </div>
 
     {% if deadline_today %}
@@ -230,7 +230,7 @@
 
     <!-- ══ SECTION 2: OUT-OF-ORDER FINAL ══ -->
     <div class="section-header amber">
-        <h2 class="text-lg font-display font-black text-amber-300 whitespace-nowrap">⚠️ Final Project Assigned Out of Order</h2>
+        <h2 class="text-lg font-black text-amber-300 whitespace-nowrap">⚠️ Final Project Assigned Out of Order</h2>
     </div>
 
     {% if ooo_batches %}
@@ -282,7 +282,7 @@
 
     <!-- ══ SECTION 3: ALERT LOG ══ -->
     <div class="section-header green">
-        <h2 class="text-lg font-display font-black text-green-300 whitespace-nowrap">📋 Alert Email Log</h2>
+        <h2 class="text-lg font-black text-green-300 whitespace-nowrap">📋 Alert Email Log</h2>
     </div>
 
     {% if alert_log %}
@@ -334,7 +334,7 @@
 
     <!-- ══ SECTION 4: UPCOMING DEADLINES (next 7 days) ══ -->
     <div class="section-header">
-        <h2 class="text-lg font-display font-black text-orange-300 whitespace-nowrap">📅 Upcoming Deadlines — Next 7 Days</h2>
+        <h2 class="text-lg font-black text-orange-300 whitespace-nowrap">📅 Upcoming Deadlines — Next 7 Days</h2>
     </div>
 
     <div class="glass mb-6 overflow-hidden" style="border-color:rgba(249,115,22,0.25);">
