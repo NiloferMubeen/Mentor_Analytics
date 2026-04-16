@@ -198,7 +198,7 @@ def home():
 REPORT_MENTORS = [
     "Nandini", "Anitha", "shagufta", "NEHLATH", "shadiya", "Asvin",
     "Vinodhini", "Nilofer", "Subhash", "Kirti_Gupta", "Vignesh",
-    "Selvamani", "Nikhat_Riyaz", "Gangatharam", "lokesh",
+    "Selvamani", "Nikhat_Riyaz", "Gangatharam", "lokesh"
 ]
 
 
@@ -401,19 +401,27 @@ def sessions():
 
 
 # ════════════════════════════════════════════════════════════
-#  TRACKER CONFIG — fill in your real values
+#                      TRACKER CONFIG 
 # ════════════════════════════════════════════════════════════
-#TRACKER_SHEET_ID = "YOUR_TRACKER_SHEET_ID_HERE"
+
 
 MANAGER_EMAIL = "nehlath@hclguvi.com"
-
+ 
 MENTOR_EMAILS = {
-    "shadiya":   "shadiya@example.com",
+    "shadiya":   "shadiya@hclguvi.com",
     "NEHLATH":   "nehlath@hclguvi.com",
-    "Gomathi":   "gomathi@example.com",
+    "Gomathi":   "gomathi@hclguvi.com",
     "Nilofer":  "nilofer.mubeen@hclguvi.com",
-    "Asvin":     "asvin@example.com",
-    # add remaining mentors here
+    "Asvin":     "asvin@hclguvi.com",
+    "Vinodhini": "vinodhini@hclguvi.com",
+    "Subhash" : "subhash.govindharaj@hclguvi.com",
+    "Kirti_Gupta": "kirti.gupta@hclguvi.com",
+    "Vignesh":   "vignesh.p@hclguvi.com",
+    "Selvamani": "selvamani.a@hclguvi.com",
+    "Nikhat_Riyaz": "nikhat.begum@hclguvi.com",
+    "Gangatharam": "gangatharam@hclguvi.com",
+    "lokesh": "lokesh@hclguvi.com"
+    
 }
 
 SMTP_FROM = "nilofer.mubeen@hclguvi.com"
