@@ -407,25 +407,24 @@ def sessions():
 
 # ── Two managers — both receive all alerts ──
 MANAGER_EMAILS = [
-    #"nehlath@hclguvi.com",
-    "nilofer.mubeen@hclguvi.com",       
-    "nilomubeen@gmail.com"
-]
+    "nehlath@hclguvi.com",
+    "amitkumar@hclguvi.com"       
+    ]
 
 MENTOR_EMAILS = {
-    #"shadiya":      "shadiya@hclguvi.com",
-    #"NEHLATH":      "nehlath@hclguvi.com",
-    #"Gomathi":      "gomathi@hclguvi.com",
+    "shadiya":      "shadiya@hclguvi.com",
+    "NEHLATH":      "nehlath@hclguvi.com",
+    "Gomathi":      "gomathi@hclguvi.com",
     "Nilofer":      "nilofer.mubeen@hclguvi.com",
-    #"Asvin":        "asvin@hclguvi.com",
-    #"Vinodhini":    "vinodhini@hclguvi.com",
-    #"Subhash":      "subhash.govindharaj@hclguvi.com",
-    #"Kirti_Gupta":  "kirti.gupta@hclguvi.com",
-    #"Vignesh":      "vignesh.p@hclguvi.com",
-    #"Selvamani":    "selvamani.a@hclguvi.com",
-    #"Nikhat_Riyaz": "nikhat.begum@hclguvi.com",
-    #"Gangatharam":  "gangatharam@hclguvi.com",
-    #"lokesh":       "lokesh@hclguvi.com",
+    "Asvin":        "asvin@hclguvi.com",
+    "Vinodhini":    "vinodhini@hclguvi.com",
+    "Subhash":      "subhash.govindharaj@hclguvi.com",
+    "Kirti_Gupta":  "kirti.gupta@hclguvi.com",
+    "Vignesh":      "vignesh.p@hclguvi.com",
+    "Selvamani":    "selvamani.a@hclguvi.com",
+    "Nikhat_Riyaz": "nikhat.begum@hclguvi.com",
+    "Gangatharam":  "gangatharam@hclguvi.com",
+    "lokesh":       "lokesh@hclguvi.com",
 }
 
 SMTP_FROM = "nilofer.mubeen@hclguvi.com"
