@@ -405,7 +405,7 @@ def sessions():
 # ════════════════════════════════════════════════════════════
 
 
-MANAGER_EMAIL = "nehlath@hclguvi.com"
+MANAGER_EMAILS = ["nehlath@hclguvi.com", "amitkumar@hclguvi.com"]
  
 MENTOR_EMAILS = {
     "shadiya":   "shadiya@hclguvi.com",
@@ -667,7 +667,7 @@ def run_tracker_alerts(from_cron=False):
         sent_keys.add(dedup_key)
 
         email   = MENTOR_EMAILS.get(mentor)
-        to_list = [e for e in [email, MANAGER_EMAIL] if e]
+        to_list = [e for e in ([email] + MANAGER_EMAILS) if e]
 
         try:
             next_proj_no = int(proj_no) + 1
@@ -734,7 +734,7 @@ def run_tracker_alerts(from_cron=False):
 
             mentor   = grp["Mentor"].iloc[0].strip()
             m_email  = MENTOR_EMAILS.get(mentor)
-            to_list  = [e for e in [m_email, MANAGER_EMAIL] if e]
+            to_list = [e for e in ([email] + MANAGER_EMAILS) if e]
             subject  = f"[MentorHub] ⚠️ Final Project Assigned Out of Order: {batch}"
             body = (
                 f"Hi,\n\n"
@@ -918,7 +918,7 @@ def tracker_alerts():
 def test_email():
     """Hit this URL to send a quick test email to MANAGER_EMAIL."""
     ok = send_email(
-        [MANAGER_EMAIL],
+        [MANAGER_EMAILS],
         "[MentorHub] Test Email",
         "This is a test email from MentorHub.\n\nIf you receive this, SMTP is working correctly."
     )
