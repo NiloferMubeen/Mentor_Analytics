@@ -401,27 +401,31 @@ def sessions():
 
 
 # ════════════════════════════════════════════════════════════
-#                      TRACKER CONFIG 
+#                      TRACKER CONFIG
 # ════════════════════════════════════════════════════════════
 
 
-MANAGER_EMAILS = ["nehlath@hclguvi.com", "amitkumar@hclguvi.com"]
- 
+# ── Two managers — both receive all alerts ──
+MANAGER_EMAILS = [
+    #"nehlath@hclguvi.com",
+    "nilofer.mubeen@hclguvi.com",       
+    "nilomubeen@gmail.com"
+]
+
 MENTOR_EMAILS = {
-    "shadiya":   "shadiya@hclguvi.com",
-    "NEHLATH":   "nehlath@hclguvi.com",
-    "Gomathi":   "gomathi@hclguvi.com",
-    "Nilofer":  "nilofer.mubeen@hclguvi.com",
-    "Asvin":     "asvin@hclguvi.com",
-    "Vinodhini": "vinodhini@hclguvi.com",
-    "Subhash" : "subhash.govindharaj@hclguvi.com",
-    "Kirti_Gupta": "kirti.gupta@hclguvi.com",
-    "Vignesh":   "vignesh.p@hclguvi.com",
-    "Selvamani": "selvamani.a@hclguvi.com",
-    "Nikhat_Riyaz": "nikhat.begum@hclguvi.com",
-    "Gangatharam": "gangatharam@hclguvi.com",
-    "lokesh": "lokesh@hclguvi.com"
-    
+    #"shadiya":      "shadiya@hclguvi.com",
+    #"NEHLATH":      "nehlath@hclguvi.com",
+    #"Gomathi":      "gomathi@hclguvi.com",
+    "Nilofer":      "nilofer.mubeen@hclguvi.com",
+    #"Asvin":        "asvin@hclguvi.com",
+    #"Vinodhini":    "vinodhini@hclguvi.com",
+    #"Subhash":      "subhash.govindharaj@hclguvi.com",
+    #"Kirti_Gupta":  "kirti.gupta@hclguvi.com",
+    #"Vignesh":      "vignesh.p@hclguvi.com",
+    #"Selvamani":    "selvamani.a@hclguvi.com",
+    #"Nikhat_Riyaz": "nikhat.begum@hclguvi.com",
+    #"Gangatharam":  "gangatharam@hclguvi.com",
+    #"lokesh":       "lokesh@hclguvi.com",
 }
 
 SMTP_FROM = "nilofer.mubeen@hclguvi.com"
@@ -485,7 +489,6 @@ def load_tracker_df():
             try:
                 ws = sheet.worksheet(tab_name)
 
-                # Get headers from row 1
                 # Get headers from row 1 and deduplicate
                 raw_headers = [h.strip() for h in ws.row_values(1)]
 
@@ -502,8 +505,7 @@ def load_tracker_df():
                 print(f"[TRACKER] '{tab_name}' headers after dedup: {headers}")
 
                 # Get only the actual data rows using a specific range
-                # e.g. A1007:Z (to end of sheet) for Data Science
-                last_col_letter = chr(ord('A') + len(headers) - 1)  # e.g. 25 cols = 'Z'
+                last_col_letter = chr(ord('A') + len(headers) - 1)
                 range_str = f"A{data_start_row}:{last_col_letter}"
                 rows = ws.get(range_str)
 
@@ -566,8 +568,8 @@ def load_tracker_df():
         print(f"[TRACKER ERROR] {e}")
         traceback.print_exc()
         return pd.DataFrame()
-    
-    
+
+
 # ── alert logic ──
 _alert_log = []   # in-memory log: [{type, batch, mentor, detail, sent_at}]
 _last_alert_run_date = None  # gate: ensures mails fire only once per day
@@ -634,7 +636,7 @@ def _append_alert_log_row(entry, dedup_key_str):
         print(f"[ALERT LOG] Could not append to AlertLog sheet: {e}")
 
 def run_tracker_alerts(from_cron=False):
-    
+
     global _alert_log, _last_alert_run_date
     if from_cron:
         today_str = datetime.now().strftime("%Y-%m-%d")
@@ -651,13 +653,40 @@ def run_tracker_alerts(from_cron=False):
     # Load persisted sent keys from AlertLog sheet (strings)
     sent_keys = _load_sent_keys()
 
-    # ── 1. Deadline alerts ──
+    # ── 1. Deadline alerts (Projects 1–5 only; Final project skipped) ──
     deadline_rows = df[df["Deadline Date"].dt.normalize() == today]
     for _, row in deadline_rows.iterrows():
-        mentor  = row.get("Mentor","").strip()
-        batch   = row.get("Batch","")
-        proj    = row.get("Project Title","")
-        proj_no = row.get("Project Number","")
+        mentor  = row.get("Mentor", "").strip()
+        batch   = row.get("Batch", "")
+        proj    = row.get("Project Title", "")
+        proj_no = str(row.get("Project Number", "")).strip()
+        match = re.search(r'\d+', proj_no)
+
+        # ── Skip Final project — no alert needed ──
+        if str(proj).strip().lower() == "final":
+            print(f"[ALERT] Skipping Final project deadline for batch {batch}")
+            continue
+
+        # ── Only alert for projects 1–5 ──
+        try:
+            proj_num = int(match.group())
+        except (ValueError, TypeError):
+            print(f"[ALERT] Could not parse Project Number '{proj_no}' for batch {batch}, skipping.")
+            continue
+
+        if proj_num > 5:
+            print(f"[ALERT] Project Number {proj_num} > 5, skipping for batch {batch}")
+            continue
+
+        # ── Build "next step" message based on project number ──
+        if proj_num <= 4:
+            next_proj_label  = f"Project {proj_num + 1}"
+            next_action_line = f"✅ Plan and assign {next_proj_label} for Batch {batch}"
+            next_action_body = f"Please plan and assign {next_proj_label} for this batch."
+        else:  # proj_num == 5
+            next_proj_label  = "the Final Project"
+            next_action_line = f"✅ It's time to assign the Final Project for Batch {batch}"
+            next_action_body = f"Project 5 deadline is today. Please assign the Final Project for this batch."
 
         # Build a unique key for this alert — skip if already sent today
         dedup_key = f"{today_str}|Deadline|{batch}|{proj}"
@@ -669,12 +698,6 @@ def run_tracker_alerts(from_cron=False):
         email   = MENTOR_EMAILS.get(mentor)
         to_list = [e for e in ([email] + MANAGER_EMAILS) if e]
 
-        try:
-            next_proj_no = int(proj_no) + 1
-            next_proj_label = "the Final Project" if next_proj_no > 5 else f"Project {next_proj_no}"
-        except (ValueError, TypeError):
-            next_proj_label = "the next project"
-
         subject = f"[MentorHub] ⏰ Deadline Today: {batch} – {proj}"
         body = (
             f"Hi {mentor},\n\n"
@@ -682,12 +705,13 @@ def run_tracker_alerts(from_cron=False):
             f"Today is the deadline for the project below. Please take action:\n\n"
             f"  ✅ Check the sessions\n"
             f"  ✅ Complete the class tracking\n"
-            f"  ✅ Plan for {next_proj_label} for Batch {batch}\n\n"
-            f"  Batch         : {batch}\n"
-            f"  Project Title : {proj}\n"
-            f"  Project Number: {proj_no}\n"
-            f"  Deadline Date : {row['Deadline Date'].strftime('%d/%m/%Y')}\n"
+            f"  {next_action_line}\n\n"
+            f"  Batch         : {batch}\n\n"
+            f"  Project Title : {proj}\n\n"
+            f"  Project Number: {proj_no}\n\n"
+            f"  Deadline Date : {row['Deadline Date'].strftime('%d/%m/%Y')}\n\n"
             f"  Mentor        : {mentor}\n\n"
+            f"{next_action_body}\n\n\n"
             f"Please ensure everything is in order before end of day.\n\n"
             f"Regards,\nMentorHub"
         )
@@ -696,7 +720,7 @@ def run_tracker_alerts(from_cron=False):
             sent = send_email(to_list, subject, body)
         entry = {
             "type":     "Deadline",
-            "sheet":    row.get("Sheet",""),
+            "sheet":    row.get("Sheet", ""),
             "batch":    batch,
             "mentor":   mentor,
             "detail":   f"{proj} — deadline today",
@@ -711,7 +735,7 @@ def run_tracker_alerts(from_cron=False):
     # Only consider 2026+ data. Only send email if the Final was assigned
     # AFTER today (i.e. a newly assigned batch, not a historical one).
     cutoff_2026 = pd.Timestamp("2026-01-01")
-    for (sheet_name, batch), grp in df.groupby(["Sheet","Batch"]):
+    for (sheet_name, batch), grp in df.groupby(["Sheet", "Batch"]):
         grp = grp.dropna(subset=["Assigned Date"])
         # Restrict to 2026+ rows only
         grp = grp[grp["Assigned Date"] >= cutoff_2026]
@@ -734,7 +758,7 @@ def run_tracker_alerts(from_cron=False):
 
             mentor   = grp["Mentor"].iloc[0].strip()
             m_email  = MENTOR_EMAILS.get(mentor)
-            to_list = [e for e in ([email] + MANAGER_EMAILS) if e]
+            to_list  = [e for e in ([m_email] + MANAGER_EMAILS) if e]
             subject  = f"[MentorHub] ⚠️ Final Project Assigned Out of Order: {batch}"
             body = (
                 f"Hi,\n\n"
@@ -772,7 +796,7 @@ try:
     _scheduler.add_job(
         run_tracker_alerts,
         "cron",
-        hour=20, minute=10,       
+        hour=20, minute=10,
         id="tracker_alerts",
         misfire_grace_time=3600  # if server was down at scheduled time, run within 1hr window
     )
@@ -819,7 +843,7 @@ def build_tracker_ctx(df):
     )
     # chart 3 — batches per mentor × language (stacked)
     lang_pivot = (
-        df.groupby(["Mentor","Language"])["Batch"]
+        df.groupby(["Mentor", "Language"])["Batch"]
         .nunique().reset_index(name="count")
     )
     # chart 4 — weekend vs weekday
@@ -828,12 +852,12 @@ def build_tracker_ctx(df):
     assigned_counts = df["Assigned by"].value_counts().to_dict()
     # chart 6 — batches per mentor × mode (stacked)
     mode_pivot = (
-        df.groupby(["Mentor","Mode_Simple"])["Batch"]
+        df.groupby(["Mentor", "Mode_Simple"])["Batch"]
         .nunique().reset_index(name="count")
     )
     # chart 7 — batch completion
-    total_per_batch   = df.groupby(["Sheet","Batch"])["Project Number"].count()
-    assigned_per_batch = df.groupby(["Sheet","Batch"])["Assigned Date"].apply(
+    total_per_batch   = df.groupby(["Sheet", "Batch"])["Project Number"].count()
+    assigned_per_batch = df.groupby(["Sheet", "Batch"])["Assigned Date"].apply(
         lambda s: s.notna().sum()
     )
     completion = pd.DataFrame({"total": total_per_batch, "assigned": assigned_per_batch}).reset_index()
@@ -846,7 +870,7 @@ def build_tracker_ctx(df):
     # out-of-order final preview — 2026 data only
     cutoff_2026 = pd.Timestamp("2026-01-01")
     ooo_batches = []
-    for (sn, batch), grp in df.groupby(["Sheet","Batch"]):
+    for (sn, batch), grp in df.groupby(["Sheet", "Batch"]):
         grp2 = grp.dropna(subset=["Assigned Date"])
         # Restrict to rows assigned in 2026 or later
         grp2 = grp2[grp2["Assigned Date"] >= cutoff_2026]
@@ -888,13 +912,13 @@ def build_tracker_ctx(df):
         assigned_values      = [int(v) for v in assigned_counts.values()],
         # chart 6 — mode stacked
         mode_pivot           = mode_pivot.to_dict(orient="records"),
-        mode_list            = ["Weekend","Weekday"],
+        mode_list            = ["Weekend", "Weekday"],
         # chart 7
         completion_labels    = completion["label"].tolist(),
         completion_total     = [int(x) for x in completion["total"].tolist()],
         completion_assigned  = [int(x) for x in completion["assigned"].tolist()],
         # alerts
-        deadline_today       = deadline_today[["Sheet","Batch","Project Title","Mentor","Deadline Date"]].to_dict(orient="records") if not deadline_today.empty else [],
+        deadline_today       = deadline_today[["Sheet", "Batch", "Project Title", "Mentor", "Deadline Date"]].to_dict(orient="records") if not deadline_today.empty else [],
         ooo_batches          = ooo_batches,
     )
 
@@ -916,9 +940,9 @@ def tracker_alerts():
 
 @app.route("/test-email")
 def test_email():
-    """Hit this URL to send a quick test email to MANAGER_EMAIL."""
+    """Hit this URL to send a quick test email to all managers."""
     ok = send_email(
-        [MANAGER_EMAILS],
+        MANAGER_EMAILS,
         "[MentorHub] Test Email",
         "This is a test email from MentorHub.\n\nIf you receive this, SMTP is working correctly."
     )
