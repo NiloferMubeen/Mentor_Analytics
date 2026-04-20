@@ -408,9 +408,8 @@ def sessions():
 
 # ── Two managers — both receive all alerts ──
 MANAGER_EMAILS = [
-    #"nehlath@hclguvi.com",
-    "nilofer.mubeen@hclguvi.com",       
-    "nilomubeen@gmail.com"
+    "nehlath@hclguvi.com",
+    "amitkumar@hclguvi.com"
 ]
 
 MENTOR_EMAILS = {
