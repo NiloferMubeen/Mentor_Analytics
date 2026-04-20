@@ -197,8 +197,9 @@ def home():
 
 REPORT_MENTORS = [
     "Nandini", "Anitha", "shagufta", "NEHLATH", "shadiya", "Asvin",
-    "Vinodhini", "Nilofer", "Subhash", "Kirti_Gupta", "Vignesh",
-    "Selvamani", "Nikhat_Riyaz", "Gangatharam", "lokesh"
+    "Vinodhini", "Nilofer", "Subhash", "Kirti Gupta", "Vignesh",
+    "Selvamani", "Nikhat_Riyaz", "Gangatharam", "lokesh","Selva Ganapathy",
+    "Arunraj","Geetha"
 ]
 
 
@@ -407,9 +408,10 @@ def sessions():
 
 # ── Two managers — both receive all alerts ──
 MANAGER_EMAILS = [
-    "nehlath@hclguvi.com",
-    "amitkumar@hclguvi.com"       
-    ]
+    #"nehlath@hclguvi.com",
+    "nilofer.mubeen@hclguvi.com",       
+    "nilomubeen@gmail.com"
+]
 
 MENTOR_EMAILS = {
     "shadiya":      "shadiya@hclguvi.com",
@@ -419,7 +421,7 @@ MENTOR_EMAILS = {
     "Asvin":        "asvin@hclguvi.com",
     "Vinodhini":    "vinodhini@hclguvi.com",
     "Subhash":      "subhash.govindharaj@hclguvi.com",
-    "Kirti_Gupta":  "kirti.gupta@hclguvi.com",
+    "Kirti Gupta":  "kirti.gupta@hclguvi.com",
     "Vignesh":      "vignesh.p@hclguvi.com",
     "Selvamani":    "selvamani.a@hclguvi.com",
     "Nikhat_Riyaz": "nikhat.begum@hclguvi.com",
