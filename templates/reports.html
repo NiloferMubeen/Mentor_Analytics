@@ -3,6 +3,8 @@
 <head>
     <title>Mentor Reports – MentorHub</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet"/>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Syne:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
@@ -39,7 +41,7 @@
             min-width: 90px;
         }
         .kpi-num { font-size: 1.6rem; font-weight: 900; line-height: 1; font-family: 'Space Grotesk', sans-serif; }
-        .kpi-label { font-size: .62rem; text-transform: uppercase; letter-spacing: .08em; margin-top: .3rem; color: #6b7280; font-weight: 700; }
+        .kpi-label { font-size: .62rem; text-transform: uppercase; letter-spacing: .08em; margin-top: .3rem; color: #c4cad6; font-weight: 700; }
 
         .section-tag {
             display: inline-flex; align-items: center; gap: 6px;
@@ -51,7 +53,7 @@
             display: flex; align-items: flex-start; gap: 10px;
             padding: .55rem 0;
             border-bottom: 1px solid rgba(255,255,255,0.04);
-            font-size: .875rem; color: #d1d5db;
+            font-size: .875rem; color: #f1f5f9;
         }
         .point-row:last-child { border-bottom: none; }
         .point-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
@@ -377,6 +379,23 @@
             </div>
         </div>
         {% endif %}
+
+        <!-- MINI CHARTS ROW -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+            {% if r.total_queries > 0 %}
+            <div style="background:rgba(255,255,255,0.025);border:1px solid rgba(236,72,153,0.18);border-radius:14px;padding:1rem;">
+                <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#f9a8d4;margin-bottom:.6rem;">📊 Query Status Breakdown</div>
+                <div style="display:flex;justify-content:center;align-items:center;height:180px;"><div style="width:175px;height:175px;position:relative;flex-shrink:0;"><canvas id="qChart_{{ r.mentor | replace(' ','_') | replace('.','') }}"></canvas></div></div>
+            </div>
+            {% endif %}
+            {% if r.live_evals > 0 and r.liveeval_status %}
+            <div style="background:rgba(255,255,255,0.025);border:1px solid rgba(99,102,241,0.2);border-radius:14px;padding:1rem;">
+                <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#c7d2fe;margin-bottom:.6rem;">📋 Evaluation Status</div>
+                <div style="display:flex;justify-content:center;align-items:center;height:180px;"><div style="width:175px;height:175px;position:relative;flex-shrink:0;"><canvas id="eChart_{{ r.mentor | replace(' ','_') | replace('.','') }}"></canvas></div></div>
+            </div>
+            {% endif %}
+        </div>
+
     </div>
     {% endfor %}
 
@@ -384,6 +403,100 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+/* ─── Chart.js mini charts per mentor card ─── */
+Chart.register(ChartDataLabels);
+
+const REPORT_DATA = {{ reports | tojson }};
+
+const STATUS_COLORS = {
+    'closed':     '#22c55e',
+    'assigned':   '#f59e0b',
+    'unassigned': '#ef4444',
+};
+
+const ZEN_PALETTE = ['#818cf8','#38bdf8','#34d399','#f472b6','#fb923c','#a78bfa','#4ade80'];
+
+function safeId(name) {
+    return name.replace(/[^a-zA-Z0-9]/g, '_');
+}
+
+REPORT_DATA.forEach(r => {
+    const id = safeId(r.mentor);
+
+    // Query status donut
+    if (r.total_queries > 0) {
+        const qCanvas = document.getElementById('qChart_' + id);
+        if (qCanvas) {
+            const qr = r.query_records || [];
+            const assigned   = qr.filter(q => q.status.toLowerCase() === 'assigned').length;
+            const unassigned = qr.filter(q => q.status.toLowerCase() === 'unassigned').length;
+            const closed     = qr.filter(q => q.status.toLowerCase() === 'closed').length;
+            new Chart(qCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Closed', 'Assigned', 'Unassigned'],
+                    datasets: [{
+                        data: [closed, assigned, unassigned],
+                        backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+                        borderWidth: 0, hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '52%',
+                    plugins: {
+                        legend: { position: 'right', labels: { color: '#d1d5db', font: { size: 10 }, boxWidth: 10 } },
+                        datalabels: {
+                            color: '#fff', font: { weight: 'bold', size: 10 },
+                            formatter: (v, ctx) => {
+                                const total = ctx.chart.data.datasets[0].data.reduce((a,b) => a+b, 0);
+                                return total > 0 && v > 0 ? ((v/total)*100).toFixed(0)+'%' : '';
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+    }
+
+    // Eval status donut
+    if (r.live_evals > 0 && r.liveeval_status) {
+        const eCanvas = document.getElementById('eChart_' + id);
+        if (eCanvas) {
+            const labels = Object.keys(r.liveeval_status);
+            const values = Object.values(r.liveeval_status);
+            new Chart(eCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: ZEN_PALETTE.slice(0, labels.length),
+                        borderWidth: 0, hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '52%',
+                    plugins: {
+                        legend: { position: 'right', labels: { color: '#d1d5db', font: { size: 10 }, boxWidth: 10 } },
+                        datalabels: {
+                            color: '#fff', font: { weight: 'bold', size: 10 },
+                            formatter: (v, ctx) => {
+                                const total = ctx.chart.data.datasets[0].data.reduce((a,b) => a+b, 0);
+                                return total > 0 && v > 0 ? ((v/total)*100).toFixed(0)+'%' : '';
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+    }
+});
+</script>
 <script>
 const reportData = {{ reports | tojson }};
 const dateFrom   = "{{ date_from }}";
@@ -461,33 +574,168 @@ function downloadTxt() {
     a.click();
 }
 
-function downloadPdf() {
+async function downloadPdf() {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-    const lines = buildTxtLines().split('\n');
-    const margin = 15, lineH = 5.5;
-    let y = margin;
+    const doc    = new jsPDF({ unit: 'mm', format: 'a4' });
+    const margin = 15;
+    const pw     = 180; // usable page width in mm
+    let   y      = margin;
 
-    doc.setFont('courier', 'normal');
+    function fillPageBg() {
+        doc.setFillColor(12, 2, 18);
+        doc.rect(0, 0, 210, 297, 'F');
+    }
+    fillPageBg();
+
+    function checkPage(needed) {
+        if (y + needed > 285) { doc.addPage(); fillPageBg(); y = margin; }
+    }
+
+    function writeLine(text, font='normal', size=9, color=[220,225,235]) {
+        doc.setFont('courier', font);
+        doc.setFontSize(size);
+        doc.setTextColor(...color);
+        checkPage(size * 0.4 + 2);
+        doc.text(text, margin, y);
+        y += size * 0.4 + 1.5;
+    }
+
+    function drawHR(r=180, g=50, b=100) {
+        checkPage(4);
+        doc.setDrawColor(r, g, b);
+        doc.setLineWidth(0.3);
+        doc.line(margin, y, margin + pw, y);
+        y += 4;
+    }
+
+    const period = dateFrom && dateTo ? `${dateFrom} to ${dateTo}` : dateFrom || dateTo || 'All time';
+
+    // Title block
+    doc.setFillColor(80, 10, 50);
+    doc.rect(0, 0, 210, 30, 'F');
+    doc.setDrawColor(236, 72, 153);
+    doc.setLineWidth(0.5);
+    doc.line(0, 30, 210, 30);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(249, 168, 212);
+    doc.text('MentorHub — Mentor Report', margin, 14);
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
+    doc.setTextColor(196, 202, 214);
+    doc.text(`Period: ${period}   |   Generated: ${new Date().toLocaleString()}`, margin, 23);
+    y = 38;
 
-    lines.forEach(line => {
-        if (y > 280) {
-            doc.addPage();
-            y = margin;
-        }
-        // Bold for MENTOR: lines and headers
-        if (line.startsWith('MENTOR:') || line.startsWith('===') || line.startsWith('MENTORHU')) {
-            doc.setFont('courier', 'bold');
-        } else {
-            doc.setFont('courier', 'normal');
-        }
-        doc.text(line, margin, y);
-        y += lineH;
-    });
+    for (const r of REPORT_DATA) {
+        checkPage(30);
 
-    const period = dateFrom && dateTo ? `${dateFrom}_${dateTo}` : 'all';
-    doc.save(`mentor_report_${period}.pdf`);
+        // Mentor header bar
+        doc.setFillColor(80, 10, 40);
+        doc.roundedRect(margin - 2, y - 4, pw + 4, 14, 3, 3, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor(251, 207, 232);
+        doc.text(r.mentor, margin + 2, y + 5);
+        y += 16;
+
+        // KPI row as coloured boxes
+        const kpis = [
+            { label: 'Queries',      val: r.total_queries,    c: [168,85,247] },
+            { label: 'Closed',       val: r.closed_queries,   c: [34,197,94]  },
+            { label: 'Learners',     val: r.doubt_learners,   c: [236,72,153] },
+            { label: 'Evals',        val: r.live_evals,       c: [56,189,248] },
+            { label: 'Sessions',     val: r.sessions_count,   c: [20,184,166] },
+            { label: 'Assigned',     val: r.projects_assigned,c: [251,191,36] },
+        ];
+        const bw = pw / kpis.length;
+        kpis.forEach((k, i) => {
+            const x = margin + i * bw;
+            doc.setFillColor(k.c[0], k.c[1], k.c[2]);
+            doc.setGState(new doc.GState({ opacity: 0.18 }));
+            doc.roundedRect(x, y, bw - 2, 14, 2, 2, 'F');
+            doc.setGState(new doc.GState({ opacity: 1 }));
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.setTextColor(k.c[0], k.c[1], k.c[2]);
+            doc.text(String(k.val), x + bw/2 - 2, y + 6.5, { align:'center' });
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(6);
+            doc.setTextColor(196, 202, 214);
+            doc.text(k.label, x + bw/2 - 2, y + 11.5, { align:'center' });
+        });
+        y += 18;
+
+        // Text summary
+        if (r.total_queries > 0) {
+            const qr = r.query_records || [];
+            const asgn = qr.filter(q=>q.status.toLowerCase()==='assigned').length;
+            const unas = qr.filter(q=>q.status.toLowerCase()==='unassigned').length;
+            const cls  = qr.filter(q=>q.status.toLowerCase()==='closed').length;
+            writeLine('QUERIES', 'bold', 9, [249,168,212]);
+            writeLine(`  Total: ${r.total_queries}   Closed: ${cls}   Assigned: ${asgn}   Unassigned: ${unas}   Close Rate: ${r.close_rate}%`, 'normal', 8, [230,235,245]);
+            if (r.avg_time > 0) {
+                let t = r.avg_time;
+                const ts = t >= 1440 ? `${Math.floor(t/1440)}d ${Math.floor((t%1440)/60)}h ${t%60}m` : t >= 60 ? `${Math.floor(t/60)}h ${t%60}m` : `${t}m`;
+                writeLine(`  Avg Resolution Time: ${ts}`, 'normal', 8, [230,235,245]);
+            }
+        }
+        if (r.doubt_learners > 0) {
+            writeLine('DOUBT SESSIONS', 'bold', 9, [253,164,175]);
+            writeLine(`  Learners Handled: ${r.doubt_learners}`, 'normal', 8, [230,235,245]);
+        }
+        if (r.live_evals > 0) {
+            writeLine('PROJECT EVALUATIONS', 'bold', 9, [199,210,254]);
+            let evalLine = `  Total: ${r.live_evals}`;
+            if (r.liveeval_status) {
+                evalLine += '   ' + Object.entries(r.liveeval_status).map(([s,n])=>`${s}: ${n}`).join('  ');
+            }
+            writeLine(evalLine, 'normal', 8, [230,235,245]);
+        }
+        if (r.sessions_count > 0) {
+            writeLine('SESSIONS', 'bold', 9, [153,246,228]);
+            writeLine(`  Delivered: ${r.sessions_count}`, 'normal', 8, [230,235,245]);
+        }
+        if (r.projects_assigned > 0) {
+            writeLine('PROJECTS ASSIGNED', 'bold', 9, [253,230,138]);
+            writeLine(`  Count: ${r.projects_assigned}`, 'normal', 8, [230,235,245]);
+        }
+
+        // Capture charts from DOM — place side by side, square
+        const chartIds = [
+            'qChart_' + safeId(r.mentor),
+            'eChart_' + safeId(r.mentor),
+        ];
+        const capturedCharts = [];
+        for (const cid of chartIds) {
+            const canvas = document.getElementById(cid);
+            if (!canvas) continue;
+            try { capturedCharts.push(canvas.toDataURL('image/png')); } catch(e) {}
+        }
+        if (capturedCharts.length > 0) {
+            const chartSide = 58; // mm — square
+            checkPage(chartSide + 6);
+            capturedCharts.forEach((imgData, idx) => {
+                doc.addImage(imgData, 'PNG', margin + idx * (chartSide + 12), y, chartSide, chartSide);
+            });
+            y += chartSide + 5;
+        }
+
+        drawHR();
+        y += 2;
+    }
+
+    // Footer
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(7);
+        doc.setTextColor(160,165,180);
+        doc.text(`MentorHub Report  •  Page ${i} of ${totalPages}  •  ${period}`, 105, 292, {align:'center'});
+    }
+
+    const period2 = dateFrom && dateTo ? `${dateFrom}_${dateTo}` : 'all';
+    doc.save(`mentor_report_${period2}.pdf`);
 }
 </script>
 </body>
