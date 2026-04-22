@@ -789,23 +789,6 @@ def run_tracker_alerts(from_cron=False):
     print(f"[ALERT DEDUP] Session complete. {len(sent_keys)} total keys tracked via AlertLog sheet.")
 
 
-# ── APScheduler (24-hour repeat) ──
-try:
-    from apscheduler.schedulers.background import BackgroundScheduler
-    _scheduler = BackgroundScheduler()
-    _scheduler.add_job(
-        run_tracker_alerts,
-        "cron",
-        hour=20, minute=10,
-        id="tracker_alerts",
-        misfire_grace_time=3600  # if server was down at scheduled time, run within 1hr window
-    )
-    _scheduler.start()
-    print("[Scheduler] Tracker alert job started (every 24 h).")
-except ImportError:
-    print("[Scheduler] APScheduler not installed — alerts will run on route visit only.")
-
-
 # ── build tracker context ──
 def build_tracker_ctx(df):
     if df.empty:
