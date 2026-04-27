@@ -198,7 +198,7 @@ def home():
 REPORT_MENTORS = [
     "Nandini", "Anitha", "shagufta", "NEHLATH", "shadiya", "Asvin",
     "Vinodhini", "Nilofer", "Subhash", "Kirti Gupta", "Vignesh",
-    "Selvamani", "Nikhat_Riyaz", "Gangatharam", "lokesh","Selva Ganapathy",
+    "Selvamani", "Nikhat Riyaz", "Gangatharam", "lokesh","Selva Ganapathy",
     "Arunraj","Geetha"
 ]
 
@@ -423,7 +423,7 @@ MENTOR_EMAILS = {
     "Kirti Gupta":  "kirti.gupta@hclguvi.com",
     "Vignesh":      "vignesh.p@hclguvi.com",
     "Selvamani":    "selvamani.a@hclguvi.com",
-    "Nikhat_Riyaz": "nikhat.begum@hclguvi.com",
+    "Nikhat Riyaz": "nikhat.begum@hclguvi.com",
     "Gangatharam":  "gangatharam@hclguvi.com",
     "lokesh":       "lokesh@hclguvi.com",
 }
